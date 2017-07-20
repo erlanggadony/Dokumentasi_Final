@@ -1,0 +1,74 @@
+%versi 2 (8-10-2016) 
+\chapter{Pendahuluan}
+\label{chap:pendahuluan}
+
+\section{Latar Belakang}
+\label{sec:latar_belakang}
+Surat akademik merupakan surat resmi untuk kebutuhan akademik yang dikeluarkan oleh suatu institusi pendidikan. Surat akademik sendiri terbagi 2 yaitu surat akademik untuk keperluan mahasiswa dan surat akademik untuk kepentingan selain mahasiswa. Surat akademik untuk keperluan mahasiswa biasanya dibutuhkan untuk memenuhi permintaan dari suatu lembaga atau organisasi tertentu yang akan dituju oleh mahasiswa untuk berbagai macam tujuan. TU (Tata Usaha) Fakultas Teknologi Informasi dan Sains (FTIS) Universitas Katolik Parahyangan (UNPAR) menyediakan layanan pembuatan surat akademik. Jenis surat akademik yang dikeluarkan oleh TU FTIS pun bermacam-macam tergantung dari surat apa yang dibutuhkan oleh mahasiswa. Berdasarkan hasil wawancara yang telah dilakukan dengan Pak Sudarno selaku Kasubag Kemahasiswaan dan Alumni TU FTIS yang bertugas mengurusi pembuatan surat akademik, permintaan surat akademik yang masuk perharinya terbilang cukup banyak. Hal ini mengakibatkan lamanya proses pembuatan surat akademik apabila dalam satu hari sudah banyak permintaan serupa. Apalagi jika surat tersebut dibutuhkan dalam keadaan mendesak dan harus segera selesai. Selain itu setiap surat akademik memiliki formulir yang berbeda-beda, sehingga selain menangani surat akademik, pihak TU FTIS perlu menyediakan formulir tersebut. Belum lagi proses pembuatan surat akademik dapat melibatkan banyak pihak yang terkait, seperti pada saat menandatangani surat tersebut.  \
+
+Berdasarkan hasil wawancara pula, didapati bahwa proses pembuatan surat akademik masih dilakukan secara manual. Prosedur yang dilalui mahasiswa apabila hendak membuat surat akademik adalah meminta formulir surat kepada petugas TU lalu mengisi formulir yang disediakan. Apabila pengisian formulir sudah selesai, formulir tersebut kemudian dikembalikan kepada petugas TU. Apabila permintaan surat akademik sedang kosong atau sedikit maka surat dapat langsung diproses dan mahasiswa tidak perlu menunggu lama untuk mendapatkannya. Namun yang menjadi kendala adalah apabila permintaan surat sedang banyak, biasanya mahasiswa diminta untuk kembali keesokan harinya untuk mengambil surat sehingga mahasiswa pemohon tidak bisa mendapatkan surat yang dibutuhkan dengan cepat. \
+
+Untuk menyelesaikan masalah tersebut, dibutuhkan suatu perangkat lunak yang dapat menggantikan peran dari resepsionis yang biasanya merangkap jabatan sebagai pembuat surat akademik. Dengan menggunakan perangkat lunak tersebut, mahasiswa dapat membuat sendiri surat akademik yang diperlukannya dengan cepat mulai dari pengisian formulir sampai proses pencetakan surat tersebut. \
+
+Perangkat lunak yang akan dibangun mengaplikasikan konsep \textit{mailmerge}, yaitu proses membuat \textit{template} surat untuk kepentingan pengedaran secara masal. Untuk menggunakan konsep ini dibutuhkan sebuah dokumen utama dan sebuah \textit{file} data. Dokumen utama berfungsi sebagai teks tetap yang akan sama pada setiap jenis \textit{output} surat. \textit{File} data berisi data-data yang akan dimasukkan ke dalam variabel-variabel yang ada di dalam dokumen utama.\
+
+\section{Rumusan Masalah}
+\label{sec:rumusan_masalah}
+Berdasarkan latar belakang yang telah disebutkan di atas, maka dihasilkan beberapa poin yang menjadi rumusan masalah dari masalah ini. Rumusan masalah yang akan dijawab dalam penelitian ini antara lain sebagai berikut : 
+\begin{enumerate}
+	\item Apa saja kebutuhan surat akademik untuk mahasiswa?
+	\item Seperti apakah \textit{template} surat akademik untuk mahasiswa?
+	\item Bagaimana membuat surat akademik untuk mahasiswa secara otomatis berdasarkan \textit{template} yang telah ditentukan?
+	\item Bagaimana antarmuka yang baik untuk \textit{input} kebutuhan surat?
+\end{enumerate}
+
+\section{Tujuan}
+\label{sec:tujuan}
+Adapun tujuan yang ingin dicapai dari penelitian ini adalah untuk menjawab rumusan masalah yang telah dibangun sebelumnya, yaitu : 
+\begin{enumerate}
+	\item Mengidentifikasikan kebutuhan surat akademik untuk mahasiswa.
+	\item Mengidentifikasikan \textit{template} surat akademik untuk mahasiswa.
+	\item Membuat surat akademik untuk mahasiswa secara otomatis berdasarkan \textit{template} yang telah ditentukan.
+	\item Mempelajari antarmuka yang baik untuk \textit{input} kebutuhan surat.
+\end{enumerate}
+
+\section{Batasan Masalah}
+\label{sec:batasan_masalah}
+Agar pembahasan masalah tidak terlalu luas, masalah yang akan dikaji di dalam penelitian ini memiliki batasan, yaitu:
+\begin{enumerate}
+	\item Perangkat lunak yang dikembangkan akan berbasis \textit{web}.
+	\item Perangkat lunak yang dikembangkan hanya dapat diakses dari lingkungan Fakultas Teknologi Informasi dan Sains.
+	\item Surat akademik yang akan dibuat adalah surat akademik untuk mahasiswa saja. Surat-surat tersebut yaitu surat keterangan beasiswa, surat keterangan mahasiswa aktif, surat pengantar pembuatan visa, surat izin studi lapangan, surat perwalian yang diwakilkan, surat izin cuti studi dan surat izin pengunduran diri mahasiswa.
+	\item Penulis berasumsi pejabat akan selalu ada di fakultas untuk dapat menandatangani surat akademik.
+	\item Perangkat lunak tidak menangani ststus keaktifan mahasiswa. Sehingga diasumsikan mahasiswa yang menggunakan perangkat lunak ini adalah maahasiswa aktif.
+	\item Nomor surat dimasukkan secara manual oleh petugas TU.
+	\item Perangkat lunak tidak menangani tembusan dalam surat.
+\end{enumerate}
+
+\section{Metodologi Penelitian}
+\label{sec:metodologi_penelitian}
+Untuk menyelesaikan penelitian ini disusunlah tahap-tahap tugas yang perlu dilakukan. Tahap-tahap yang dimaksud adalah sebagai berikut:
+\begin{enumerate}
+	\item Melakukan studi literatur untuk mendapatkkan teori-teori yang berkaitan dengan penelitian yang akan dikerjakan.
+	\item Melakukan wawancara kepada Kasubag Kemahasiswaan dan Alumni TU FTIS untuk medapatkan keterangan mengenai surat akademik apa saja yang dibuat oleh TU FTIS.
+	\item Mengidentifikasi setiap \textit{template} dan formulir permohonan surat.
+	\item Mempelajari cara menggunakan fitur \textit{mailmerge} pada beberapa perangkat lunak pengolah kata.
+\end{enumerate}
+
+\section{Sistematika Penulisan}
+\label{sec:sistematika_penulisan}
+Keseluruhan bab yang disusun dalam penelitian ini terbagi kedalam bab-bab sebagai berikut:
+\begin{enumerate}
+	\item Bab 1 Pendahuluan \\
+	Bab ini membahas mengenai latar belakang, rumusan masalah, tujuan, batasan masalah, metodologi penelitian dan sistematika penulisan.
+	\item Bab 2 Dasar Teori \\
+	Bab ini membahas mengenai pengertian surat, sistem informasi, \LaTeX dan Laravel.
+	\item Bab 3 Analisis \\
+	Bab ini akan membahas mengenai deskripsi sistem terkini yang melingkupi gambaran umum institusi, jenis-jenis surat akademik yang dikeluarkan oleh pihak TU, prosedur pemesanan surat akademik, prosedur pembuatan surat akademik, prosedur pengambilan surat akademik, analisis kebutuhan. Lalu akan dilanjutkan dengan analisis sistem usulan surat-surat yang ditangani, prosedur pembuatan surat usulan, \textit{Data Flow Diagram} (DFD), analisis kebutuhan data surat dan ER diagram.
+	\item Bab 4 Perancangan \\
+	Bab ini akan membahas mengenai perancangan struktur modul bagi mahasiswa, pejabat dan petugas TU, perancangan fisik basis data dan perancangan antar muka bagi mahasiswa, pejabat dan petugas TU.
+	\item Bab 5 Implementasi dan Pengujian \\
+	Bab ini akan membahas mengenai lingkungan pengujian, implementasi antar muka dan pengujian.
+	\item Bab 6 Kesimpulan dan Saran \\ 
+	Bab ini akan membahas mengenai kesimpulan dari penelitian yang telah dilakukan dan saran-saran untuk pengembangan lebih lanjut dari penelitian ini.
+\end{enumerate}
