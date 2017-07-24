@@ -1,7 +1,7 @@
 %versi 2 (8-10-2016)
 \chapter{Dasar Teori}
 \label{chap:dasar_teori}
-Pada bab ini membahas teori-teori yang menjadi dasar dari penelitian ini. Teori yang dibahas yaitu mengenai surat, sistem informasi, \LaTeX dan Laravel.
+Bab ini membahas teori-teori yang menjadi dasar dari penelitian ini. Teori yang dibahas yaitu mengenai surat, sistem informasi, \LaTeX dan Laravel.
 
 \section{Surat}
 \label{sec:surat}
@@ -55,7 +55,7 @@ Secara umum, komponen surat terdiri atas bagian-bagian berikut \cite{Marjo:2005}
 	\item Singkatan (\textit{Initial})\\
 	Singkatan berfungsi untuk mempermudah mengetahui siapa pengirim dan penandatangan surat tersebut.
 	\item Jabatan penanda tangan\\
-	Jabatan penannda tangan harus dicantumkan surat-surat resmi (surat resmi dan surat dinas) agar dapat diketahui siapa yang mengirimkan surat tersebut dan siapa yang berhak atas surat yang dibuatnya.
+	Jabatan penanda tangan harus dicantumkan surat-surat resmi (surat resmi dan surat dinas) agar dapat diketahui siapa yang mengirimkan surat tersebut dan siapa yang berhak atas surat yang dibuatnya.
 	\item Tanda tangan\\
 	Tanda tangan berfungsi menyatakan identitas penanggung jawab surat dan sebagai petunjuk bahwa surat tersebut bersifat resmi dan siap dikirimkan karena sudah ditandatangani.
 	\item Tembusan\\
@@ -64,7 +64,7 @@ Secara umum, komponen surat terdiri atas bagian-bagian berikut \cite{Marjo:2005}
 
 \subsection{Jenis Surat}
 \label{sec:jenis_surat}
-Macam-macam jenis surat dapat ditinjau dari beberapa segi sebagai berikut : 
+Macam-macam jenis surat dapat ditinjau dari beberapa segi sebagai berikut \cite{Saiman:2002}: 
 \begin{enumerate}
 	\item Berdasarkan Wujud Surat : 
 	\begin{enumerate}
@@ -81,7 +81,7 @@ Macam-macam jenis surat dapat ditinjau dari beberapa segi sebagai berikut :
 		\item Surat pengantar \\
 		Surat pengantar ditujukan kepada perorangan atau lembaga sebagai pengatur atau referensi seseorang untuk berhubungan dengan pihak penerima surat.
 		\item Surat elektronik (surel) \\
-		Surat elektronik atau lebih dikenal dengan \textit{electronic mail (e-mail)} adalah surat yang dikirimkan kepada seseorang dengan bantuan jaringan \textit{internet}.
+		Surat elektronik (surel) atau yang dalam bahasa Inggris berarti \textit{electronic mail (e-mail)} adalah surat yang dikirimkan kepada seseorang dengan bantuan jaringan \textit{internet}.
 	\end{enumerate}
 	\item Berdasarkan tujuan surat :
 	\begin{enumerate}
@@ -181,15 +181,8 @@ Ada 6 jenis sistem informasi yang digunakan dalam organisasi \cite{Laudon:2011},
 	Pada penelitian ini, jenis sistem informasi yang akan digunakan yaitu \textit{Transaction Processing Systems} (TPS) dan \textit{Office Automation Systems} (OAS) karena TPS berfungsi untuk menerima \textit{input} data dan OAS berfungsi untuk mengotomatisasi suatu proses.
 
 \subsection{\textit{Transaction Processing Systems} (TPS)}
-\label{sec:tps}
+\label{sec:transaction_processing_systems}
 \textit{Transaction Processing Systems} (TPS) adalah sistem terkomputerisasi pencatat transaksi rutin yang terjadi dalam sebuah organisasi \cite{Laudon:2011}. Jenis sistem informasi digunakan untuk menerima \textit{input} data untuk kemudian hasil \textit{input} disimpan ke dalam \textit{database} yang dapat digunakan sebagai \textit{input} pada proses selanjutnya atau untuk keperluan laporan.
-
-\begin{figure}[H]
-	\centering
-		\includegraphics[scale=0.5]{F:/Skripsi/Dokumentasi_Skripsi/Gambar/Teori/tps.JPG}
-		{\caption{Alur informasi pada proses transaksi} \cite{Turban:2001}}
-	\label{fig:tps}
-\end{figure}
 
 Gambar \ref{fig:tps} menggambarkan alur dari informasi pada proses transaksi yang akan dijelaskan sebagai berikut : 
 \begin{enumerate}
@@ -197,6 +190,13 @@ Gambar \ref{fig:tps} menggambarkan alur dari informasi pada proses transaksi yan
 	\item Data kemudian disimpan ke dalam \textit{database}, apabila data tersebut belum terdapat pada \textit{database} maka akan dilakukan operasi \textit{insert} \textit{record} baru, sementara apabila data tersebut sudah dimiliki oleh \textit{database} maka akan dilakukan operasi \textit{update} untuk memperbaharui informasi pada \textit{record} yang sudah ada tersebut dengan informasi dari data baru.
 	\item Apabila \textit{record} pada \textit{database} sudah berhasil ditambahkan/diperbaharui, program dapat menghasilkan laporan maupun dokumen yang dapat digunakan oleh pihak organisasi maupun dapat diakses oleh pihak luar.
 \end{enumerate}
+
+\begin{figure}[H]
+	\centering
+		\includegraphics[scale=0.5]{F:/Skripsi/Dokumentasi_Skripsi/Gambar/Teori/tps.JPG}
+		{\caption{Alur informasi pada proses transaksi} \cite{Turban:2001}}
+	\label{fig:tps}
+\end{figure}
 
 \textbf{Karakteristik TPS}\\
 
@@ -243,7 +243,7 @@ Otomatisasi proses dapat membawa dampak positif pada organisasi yang menerapkann
  
 \section{\LaTeX}
 \label{sec:latex}
-\LaTeX adalah sebuah bahasa markup untuk sistem penulisan dokumen yang dikembangkan oleh Leslie B. Lamport dan dirilis pada tahun 1985 \cite{Lamport:1994}. \LaTeX memiliki filosofi WYMIWYG (\textit{What You Mean Is What You Get}) yang berarti sesuatu yang akan kita tulis akan ditulis berdasarkan arti dari hal tersebut. Oleh karena itu, untuk menambahkan suatu perintah pada dokumen yang sedang kita tulis perlu menambahkan suatu \textit{command}. \textit{Command} adalah kata spesial yang menentukan suatu sifat pada \LaTeX. Hampir semua \textit{command} pada \LaTeX selalu diawali dengan tanda '\textbackslash' dan beberapa \textit{command} memiliki \textit{parameter}. \textit{Parameter} diawali dengan tanda kurung kurawal buka dan diakhiri denga kurung kurawal tutup(\{\}). \textit{File} \LaTeX memiliki ekstensi .tex.  
+\LaTeX adalah sebuah bahasa \textit{markup} untuk sistem penulisan dokumen yang dikembangkan oleh Leslie B. Lamport dan dirilis pada tahun 1985 \cite{Lamport:1994}. \LaTeX memiliki filosofi WYMIWYG (\textit{What You Mean Is What You Get}) yang berarti sesuatu yang akan kita tulis akan ditulis berdasarkan arti dari hal tersebut. Oleh karena itu, untuk menambahkan suatu perintah pada dokumen yang sedang kita tulis perlu menambahkan suatu \textit{command}. \textit{Command} adalah kata spesial yang menentukan suatu sifat pada \LaTeX. Hampir semua \textit{command} pada \LaTeX selalu diawali dengan tanda '\textbackslash' dan beberapa \textit{command} memiliki \textit{parameter}. \textit{Parameter} diawali dengan tanda kurung kurawal buka dan diakhiri denga kurung kurawal tutup(\{\}). \textit{File} \LaTeX memiliki ekstensi .tex.  
 
 Untuk menulis dokumen pada \LaTeX dibutuhkan beberapa \textit{command} yang wajib ada dalam sebuah dokumen, yaitu \cite{Lamport:1994} : 
 \begin{enumerate}

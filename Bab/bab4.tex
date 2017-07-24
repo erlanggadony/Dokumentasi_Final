@@ -1,9 +1,10 @@
 \chapter{Perancangan}
 \label{chap:perancangan}
+Bab ini membahas mengenai perancangan struktur modul, perancangan basis data dan perancangan antar muka.
 
 \section{Perancangan Struktur Modul}
 \label{sec:perancangan_struktur_modul}
-Berdasarkan \textit{work-flow map} yang telah dirancang pada bab sebelumnya, maka dirancang struktur modul yang menjelaskan mengenai modul-modul apa saja yang akan dirancang untuk membangun \textit{website} SIKSA. Garis besar dari struktur modul ini terbagi menjadi 3 bagian berdasarkan penggunanya, yaitu modul mahasiswa, modul TU dan modul pejabat.\
+Berdasarkan \textit{work-flowmap} yang telah dirancang pada bab 3, maka dirancang struktur modul yang menjelaskan mengenai modul-modul apa saja yang akan dirancang untuk membangun \textit{website} SIKSA. Garis besar dari struktur modul ini terbagi menjadi 3 bagian berdasarkan penggunanya, yaitu modul mahasiswa, modul TU dan modul pejabat.\
 Gambar \hyperlink{struktur_modul_garis_besar}{4.1} menjelaskan struktur modul secara garis besar.
 
 \begin{figure}[H]
@@ -66,9 +67,9 @@ Berdasarkan gambar di atas, berikut ini adalah penjelasan mengenai struktur modu
 
 \section{Perancangan Fisik Basis Data}
 \label{sec:perancangan_fisik_basis_data}
-Berdasarkan diagram ER yang telah dibuat pada bab III, dapat dibangun perancangan fisik dari basis data untuk mengimplementasikan hubungan antar entitas.\
+Berdasarkan diagram ER yang telah dibuat pada bab 3, dapat dibangun perancangan fisik dari basis data untuk mengimplementasikan hubungan antar entitas.\
 
-Tabel 4.1-4.9 berikut ini menjelaskan entitas apa saja yang dibangun beserta dengan atribut-atribut pada entitas tersebut.
+Tabel \ref{entitas_mahasiswa}-\ref{entitas_petugas_TU} berikut ini menjelaskan entitas apa saja yang dibangun beserta dengan atribut-atribut pada entitas tersebut.
 
 \begin{table}[H]
 \centering
@@ -225,7 +226,7 @@ Berdasarkan struktur modul yang telah dijelaskan pada bagian sebelumnya, maka di
 Untuk dapat mengakses \textit{website} SIKSA ini setiap pengguna perlu melakukan \textit{login} dengan menggunakan \textit{username} dan \textit{password} yang dimiliki pada halaman \textit{login}. Gambar \hyperlink{halaman_login}{4.5} menunjukkan halaman login.
 \begin{figure}[H]
 	\centering
-		\includegraphics[scale=0.4]{F:/Skripsi/Dokumentasi_Skripsi/Gambar/Mock_Up/Login.png}
+		\includegraphics[scale=0.6]{F:/Skripsi/Dokumentasi_Skripsi/Gambar/Mock_Up/Login.png}
 		\caption{Halaman \textit{login}}
 		\label{fig:halaman_login}
 	\end{figure}
@@ -334,7 +335,7 @@ Berdasarkan struktur modul, pejabat dapat menjalankan 3 fungsi yaitu melihat pes
 		\label{fig:halaman_history_pejabat}
 	\end{figure}
 
-	\item Cek persetujuan pejabat
+	\item Cek persetujuan pejabat\\
 	Pejabat dapat memantau proses persetujuan surat yang dipesan oleh mahasiswa bimbingannya pada halaman persetujuan pejabat yang ditampilkan pada gambar \hyperlink{halaman_persetujuan_pejabat}{4.17}.
 	\begin{figure}[H]
 	\centering
@@ -400,7 +401,7 @@ Berdasarkan struktur modul, petugas TU dapat menjalankan 4 fungsi yaitu menambah
 		\label{fig:setting}
 	\end{figure}
 	
-	\item Cek persetujuan surat
+	\item Cek persetujuan surat\\
 	Petugas TU dapat memantau proses persetujuan surat yang dipesan oleh seluruh mahasiswa pada halaman persetujuan surat yang ditampilkan pada gambar \hyperlink{halaman_persetujuan_surat}{4.24}.
 	\begin{figure}[H]
 	\centering

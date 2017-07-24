@@ -1,6 +1,6 @@
 \chapter{Analisis}
 \label{chap:analisis}
-Pada analisis membahas mengenai deskripsi sistem terkini dan analisis sistem usulan.
+Bab ini membahas mengenai deskripsi sistem terkini dan analisis sistem usulan.
 
 \section{Deskripsi Sistem Terkini}
 \label{sec:deskripsi_sistem_terkini}
@@ -144,7 +144,7 @@ Gambar \hyperlink{pengambilan_terkini}{3.5} merupakan prosedur pengambilan surat
 
 \begin{figure}[H]
 	\centering
-		\includegraphics[scale=0.5]{F:/Skripsi/Dokumentasi_Skripsi/Gambar/Diagram/sistem_terkini/work_flow/pengambilan_terkini.jpg}
+		\includegraphics[scale=0.5]{F:/Skripsi/Dokumentasi_Skripsi/Gambar/Diagram/sistem_terkini/work_flow/pengambilan_terkini.png}
 	{\caption{Prosedur pengambilan surat terkini}}
 	\label{fig:pengambilan_terkini}
 \end{figure}
@@ -219,7 +219,8 @@ keseluruhan sistem beserta aktornya.
 	\label{fig:data_flow}
 \end{figure}
 
-\textit{Website} penyedia surat akademik ini memiliki 3 aktor, yaitu \textit{mahasiswa}, \textit{pejabat} dan \textit{petugas TU}. Tiap aktor memiliki hak akses ke beberapa fitur tertentu. Gambar \hyperlink{level_1}{3.8} merupakan DFD \textit{level} 1 yang menjelaskan aliran data pada tiap aktor.
+\textit{Website} SIKSA memiliki 3 aktor, yaitu \textit{mahasiswa}, \textit{pejabat} dan \textit{petugas TU}. Tiap aktor memiliki hak akses ke beberapa fitur tertentu. Gambar \hyperlink{level_1}{3.8} merupakan DFD \textit{level} 1 yang menjelaskan aliran data pada tiap aktor.
+
 
 \begin{figure}[H]
 	\centering
@@ -228,7 +229,7 @@ keseluruhan sistem beserta aktornya.
 	\label{fig:level_1}
 \end{figure}
 
-Gambar \hyperlink{level_2-1}{3.9} merupakan DFD \textit{level} 2-1 yang menjelaskan aliran data pada saat aktor mahasiswa hendak membuat surat yang kemudian dilanjutkan pada DFD \textit{level} 3-1.10 pada gambar \hyperlink{level_3-1.10}{3.10}
+Gambar \hyperlink{level_2-1}{3.9} merupakan DFD \textit{level} 2-1 yang menjelaskan aliran data pada saat aktor mahasiswa hendak membuat surat yang kemudian dilanjutkan pada DFD \textit{level} 3-1.10 pada gambar \hyperlink{level_3-1.10}{3.10}.
 
 \begin{figure}[H]
 	\centering
@@ -327,18 +328,18 @@ Gambar \hyperlink{level_2-4}{3.20} merupakan DFD \textit{level} 2-4 yang menjela
 	\label{fig:level_2-4}
 \end{figure}
 
-\textbf{Data Dictionary}\\
+\textbf{\textit{Data Dictionary}}\\
 \begin{itemize}
- \item list data mahaiswa : nirm, npm, nama mahasiswa, prodi, fakultas, angkatan, tglLahir, kota lahir, foto, dosenWali, username, password
+ \item \textit{list} data mahaiswa : nirm, npm, nama mahasiswa, prodi, fakultas, angkatan, tglLahir, kota lahir, foto, dosenWali, username, password
  \item data per mahasiswa : nirm, npm, nama mahasiswa, prodi, fakultas, angkatan, tglLahir, kota lahir, foto, dosenWali
- \item kebutuhan format surat : idFormat, jenis surat, format, keterangan
+ \item kebutuhan \textit{format} surat : idFormat, jenis surat, format, keterangan
  \item kebutuhan pesanan surat : tglPembuatan, perihal, npm, idFormatSurat, dataSurat, penerimaSurat
- \item kebutuhan history surat : status penandatanganan surat, Status pengambilan surat
+ \item kebutuhan \textit{history} surat : status penandatanganan surat, Status pengambilan surat
 \end{itemize}
 
 \subsection{Analisis Kebutuhan Data}
 \label{sec:analisis_kebutuhan_data}
-Setiap surat memiliki kebutuhan data yang berbeda-beda bergantung dari jenis surat yang akan dibuat. Tabel 3.16-3.20 berikut ini akan menjelaskan data apa saja yang perlu diisikan oleh mahasiswa dalam proses pembuatan surat akademik.\
+Setiap surat memiliki kebutuhan data yang berbeda-beda bergantung dari jenis surat yang akan dibuat. Tabel \ref{surat_keterangan_beasiswa}-\ref{surat_perwakilan_perwalian} berikut ini akan menjelaskan data apa saja yang perlu diisikan oleh mahasiswa dalam proses pembuatan surat akademik.\
 
 \begin{table}[h]
 \centering
@@ -394,7 +395,7 @@ Tanggal kunjungan                         \\ \hline
 \begin{table}[h]
 \centering
 \caption{Tabel kebutuhan data surat pengantar studi lapangan}
-\label{surat_keterangan_beasiswa}
+\label{surat_kebutuhan data_surat_pengantar_studi_lapangan}
 \begin{tabular}{|l|}
 \hline
 \textbf{Atribut Data}                     \\ \hline
@@ -483,8 +484,8 @@ Nama wakil dekan I						   \\ \hline
 \end{tabular}
 \end{table}
 
-\subsection{ER Diagram}
-\label{sec:er_diagram}
+\subsection{Diagram ER}
+\label{sec:diagram_er}
 Setelah mengamati \textit{work flowmap}, didapat beberapa objek yang dapat digambarkan menjadi sebuah entitas pada diagram ER. Objek-objek yang dimaksud yaitu format surat, mahasiswa, petugas TU dan pejabat. Untuk objek surat dan mahasiswa dapat langsung dibuat entitas. Untuk objek pejabat diubah menjadi entitas dosen karena pejabat merupakan dosen yang memiliki pangkat tertentu di jurusan maupun fakultas.\
 
 Selain objek yang didapat dari \textit{work flowmap}, didapat juga objek-objek lain yang berhubungan dengan objek-objek yang telah disebutkan. Objek-objek yang dimaksud yaitu jurusan, fakultas, pesanan surat dan \textit{history} surat. Gambar \hyperlink{erd}{3.21} adalah diagram ER yang menggambarkan hubungan antar entitas yang telah disebutkan di atas.
@@ -493,5 +494,5 @@ Selain objek yang didapat dari \textit{work flowmap}, didapat juga objek-objek l
 	\centering
 		\includegraphics[scale = 0.5]{F:/Skripsi/Dokumentasi_Skripsi/Gambar/Diagram/sistem_usulan/erd/erd_left.png}
 	\caption{Diagram ER}
-	\label{fig:level_2-2}
+	\label{fig:erd}
 \end{figure}

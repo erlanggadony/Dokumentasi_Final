@@ -382,52 +382,94 @@ class HistorysuratController extends Controller
         $this->formatsuratRepo = $formatsuratRepo;
         $this->jurusanRepo = $jurusanRepo;
         //dd($this->orders->getAllActive());
-    }
+    } 
 
     public function tampilkanHistoryDiPejabat(Request $request){
-          $historysurats;
-          if($request->kategori_history_surat == "noSurat"){
-            $historysurats = $this->historysuratRepo->findHistorySuratByNomorSurat($request->searchBox);
+         $loggedInUser = Auth::user();
+      $realUser = $this->getRealUser($loggedInUser);
+
+      $results = [];
+
+      //CEK USER DEKAN
+      if($realUser->id == $realUser->fakultas->id_dekan){
+        // dd("s");
+         $tempHistorysurats = Historysurat::where('formatsurat_id','=',9)->orWhere('formatsurat_id','=',10)->get();
+         foreach ($tempHistorysurats as $key => $surat) {
+           array_push($results,$surat);
           }
-          else if($request->kategori_history_surat == "jenis_surat"){
-            $historysurats = $this->historysuratRepo->findHistoryByJenisSurat($request->searchBox);
+        
+        // dd($);
+        return view('pejabat.history_pejabat', [
+          'historysurats' => $results,
+          'user' => $realUser
+        ]);
+      }
+
+      //CEK USER WD1
+      if($realUser->id == $realUser->fakultas->id_WD_I){
+        $tempHistorysurats = Historysurat::where('formatsurat_id','=',2)
+                                             ->orWhere('formatsurat_id','=',11)
+                                             ->orWhere('formatsurat_id','=',12)
+                                             ->orWhere('formatsurat_id','=',13)
+                                             ->orWhere('formatsurat_id','=',14)
+                                             ->orWhere('formatsurat_id','=',15)
+                                             ->orWhere('formatsurat_id','=',16)
+                                             ->orWhere('formatsurat_id','=',17)
+                                             ->orWhere('formatsurat_id','=',18)
+                                             ->orWhere('formatsurat_id','=',19)
+                                             ->orWhere('formatsurat_id','=',20)
+                                             ->get();
+        return view('pejabat.history_pejabat', [
+          'historysurats' => $tempHistorysurats,
+          'user' => $realUser
+        ]);
+      }
+
+      //CEK USER WD3
+      if($realUser->id == $realUser->fakultas->id_WD_III){
+        $tempHistorysurats = Historysurat::where('formatsurat_id','=',1)
+                                           ->orWhere('formatsurat_id','=',3)
+                                           ->orWhere('formatsurat_id','=',4)
+                                           ->orWhere('formatsurat_id','=',5)
+                                           ->orWhere('formatsurat_id','=',6)
+                                           ->orWhere('formatsurat_id','=',7)
+                                           ->orWhere('formatsurat_id','=',8)
+                                           ->get();
+        
+        foreach ($tempHistorysurats as $key => $surat) {
+          array_push($results,$surat);
+        }
+      }
+
+       foreach ($realUser->mahasiswas as $key => $mhs) {
+         foreach ($mhs->historysurats as $key => $surat) {
+           array_push($results,$surat);
           }
-          else if($request->kategori_history_surat == "perihal"){
-            $historysurats = $this->historysuratRepo->findHistoryByPerihal($request->searchBox);
-          }
-          else if($request->kategori_history_surat == "penerima_surat"){
-            $historysurats = $this->historysuratRepo->findHistorySuratByPenerimaSurat($request->searchBox);
-          }
-          else if($request->kategori_history_surat == "pengirimSurat"){
-            $historysurats = $this->historysuratRepo->findHistoryByPengirimSurat($request->searchBox);
-          }
-          else if($request->kategori_history_surat == "tanggalPembuatan"){
-            $historysurats = $this->historysuratRepo->findHistoryByTanggalPembuatan($request->searchBox);
-          }
-          else{
-            $historysurats = $this->historysuratRepo->findAllHistorysurat();
-          }
-          // dd($formatsurats);
-          $loggedInUser = Auth::user();
-          $realUser = $this->getRealUser($loggedInUser);
-          return view('pejabat.history_pejabat', [
-            'historysurats' => $historysurats,
-            'user' => $realUser
-          ]);
+       }
+
+      return view('pejabat.history_pejabat', [
+          'historysurats' => $results,
+          'user' => $realUser
+        ]);
   	}
 
-    public function tampilkanProfil(){
+    public function tampilkanProfil(Request $request){
       $loggedInUser = Auth::user();
-      // dd($loggedInUser);
       $realUser = $this->getRealUser($loggedInUser);
-      // dd($realUser);
-      // dd($realUser->historysurats);
-      $histories = $realUser->historysurats;
-      // dd($histories);
-      // $jenis = $this->historysuratRepo->findHistoryById($history->id)
-      // dd($history);
+      if($request->kategori_mahasiswa == "perihal"){
+        $histories = Historysurat::where('perihal', $request->searchBox)->where('mahasiswa_id', $realUser->id)->get();
+      }
+      else if($request->kategori_mahasiswa == "penerimaSurat"){
+        $histories = Historysurat::where('penerimaSurat', $request->searchBox)->where('mahasiswa_id', $realUser->id)->get();
+      }
+      else if($request->kategori_mahasiswa == "jenis_surat"){
+        $histories = Historysurat::where('formatsurat_id', $request->searchBox)->where('mahasiswa_id', $realUser->id)->get();
+      }
+      else{
+        $histories = $realUser->historysurats;
+      }
+      
       $foto = $realUser->foto_mahasiswa;
-      // dd($foto);
       return view('mahasiswa.home_mahasiswa',[
         'user' => $realUser,
         'historysurats' => $histories
@@ -476,28 +518,29 @@ class HistorysuratController extends Controller
 	 */
 	public function pilihHistorySurat(Request $request){
         $historysurats;
-        if($request->kategori_history_surat == "noSurat"){
-          $historysurats = $this->historysuratRepo->findHistorySuratByNomorSurat($request->searchBox);
+        if($request->kategori_history_surat == "no_surat"){
+          $historysurats = $this->historysuratRepo->findHistorysuratByNomorSurat($request->searchBox);
         }
         else if($request->kategori_history_surat == "jenis_surat"){
-          $historysurats = $this->historysuratRepo->findHistoryByJenisSurat($request->searchBox);
+          $historysurats = $this->historysuratRepo->findHistorysuratByJenisSurat($request->searchBox);
         }
         else if($request->kategori_history_surat == "perihal"){
-          $historysurats = $this->historysuratRepo->findHistoryByPerihal($request->searchBox);
+          $historysurats = $this->historysuratRepo->findHistorysuratByPerihal($request->searchBox);
         }
-        else if($request->kategori_history_surat == "penerima_surat"){
-          $historysurats = $this->historysuratRepo->findHistorySuratByPenerimaSurat($request->searchBox);
+        else if($request->kategori_history_surat == "penerimaSurat"){
+          $historysurats = $this->historysuratRepo->findHistorysuratByPenerimaSurat($request->searchBox);
         }
-        else if($request->kategori_history_surat == "pengirimSurat"){
-          $historysurats = $this->historysuratRepo->findHistoryByPengirimSurat($request->searchBox);
+        else if($request->kategori_history_surat == "pemohonSurat"){
+          $historysurats = $this->historysuratRepo->findHistorysuratByPemohonSurat($request->searchBox);
         }
         else if($request->kategori_history_surat == "tanggalPembuatan"){
-          $historysurats = $this->historysuratRepo->findHistoryByTanggalPembuatan($request->searchBox);
+          $historysurats = $this->historysuratRepo->findHistorysuratByTanggalPembuatan($request->searchBox);
         }
         else{
-          $historysurats = $this->historysuratRepo->findAllHistorysurat();
+          $historysurats = $this->historysuratRepo->findAllHistorySurat();
+          
         }
-        // dd($formatsurats);
+        // dd($historysurats);
         $loggedInUser = Auth::user();
         $realUser = $this->getRealUser($loggedInUser);
         $foto = $realUser->foto_mahasiswa;
@@ -508,40 +551,52 @@ class HistorysuratController extends Controller
         ]);
 	}
 
+  public function tampilkanPDF(Request $request){
+    $history = $this->historysuratRepo->findHistoryById($request->history_id);
+    $link = $history->link_arsip_surat;
+    // dd($history);
+    return redirect($link); 
+  }
+
   public function buatPDF(Request $request){
-      $loggedInUser = Auth::user();
-      $realUser = $this->getRealUser($loggedInUser);
       if($request->idFormatSurat == "1"){
         $dataSurat = $request->data;
         $json = json_decode($dataSurat);
         $noSurat = $request->noSurat;
         $nama = $json->nama;
-        $prodi = $this->jurusanRepo->findJurusanById($json->prodi);
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $npm = $json->npm;
         $semester = $json->semester;
         $thnAkademik = $json->thnAkademik;
         $penyediabeasiswa = $json->penyediabeasiswa;
         $pemesan = $request->pemesan;
-        // $tanggal = $this->pesananSuratRepo->findHistorySuratById($request->id)->created_at;
+        
+        //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $prodi . ',' . $npm . ',' . $semester . ',' . $thnAkademik . ',' . $penyediabeasiswa . '}';
-        // dd($entry);
+        //concat data input dgn format surat
+        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $prodi . ',' . $npm . ',' . $semester . ',' . $thnAkademik . ',' . $penyediabeasiswa . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_keterangan_beasiswa.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
-        // dd($baris);
+
         foreach ($fileTemplate as $line_num => $line) {
-            // dd($line);
             $stringFormat .= $line;
             if($line_num == $baris-3){
                 $stringFormat .= $entry;
             }
         }
-        // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_keterangan_beasiswa.tex", "w");
+
+        //inject ke file baru lalu compile
+        $file = fopen("arsip_surat/" . $npm . "_surat_keterangan_beasiswa.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat. '_' . $npm . '_surat_keterangan_beasiswa.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_keterangan_beasiswa.tex');
 
         //store to db
         $historysurat = new Historysurat;
@@ -549,28 +604,35 @@ class HistorysuratController extends Controller
         $historysurat->perihal = '-';
         $historysurat->penerimaSurat = $json->penyediabeasiswa;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_keterangan_beasiswa.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_keterangan_beasiswa.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
-        return redirect('/history_TU');//->with('success_message', 'Surat berhasil dibuat!');
+        return redirect('/history_TU');
       }
       else if($request->idFormatSurat == "2"){
         $dataSurat = $request->data;
         $json = json_decode($dataSurat);
         $noSurat = $request->noSurat;
         $nama = $json->nama;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $npm = $json->npm;
         $kota_lahir = $json->kota_lahir;
-        $tglLahir = $json->tglLahir;
+        $tglLahir = date_create($json->tglLahir)->format("j F Y");
         $alamat = $json->alamat;
         $semester = $json->semester;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        //input entry
-        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $prodi . ',' . $npm . ',' . $kota_lahir . ',' . $tglLahir . ',' . $alamat . ',' . $semester . '}';
+        //concat data input dgn format surat
+        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $npm . ',' . $prodi . ',' . $kota_lahir . ',' . $tglLahir . ',' . $alamat . ',' . $semester . ',' . $tanggal . '}';
         // dd($entry);
         $fileTemplate = file('format_surat_latex/surat_keterangan_mahasiswa_aktif.tex');
         $stringFormat = "";
@@ -584,11 +646,11 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        //inject ke file baru
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_keterangan_mahasiswa_aktif.tex", "w");
+        //inject ke file baru  lalu compile
+        $file = fopen("arsip_surat/" . $npm . "_surat_keterangan_mahasiswa_aktif.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_keterangan_mahasiswa_aktif.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_keterangan_mahasiswa_aktif.tex');
 
         //store to db
         $historysurat = new Historysurat;
@@ -596,8 +658,8 @@ class HistorysuratController extends Controller
         $historysurat->perihal = '-';
         $historysurat->penerimaSurat = $nama;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_keterangan_mahasiswa_aktif.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_keterangan_mahasiswa_aktif.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -609,14 +671,26 @@ class HistorysuratController extends Controller
         $noSurat = $request->noSurat;
         $nama = $json->nama;
         $tglLahir = $json->tglLahir;
-        $organisasiTujuan = $json->organisasiTujuan;
+        $kewarganegaraan = $json->kewarganegaraan;
+        $getYear = date_create($request->tanggal)->format("Y");
+        $angkatan = $json->angkatan; 
+        $tahunKe = intval($getYear)-intval($angkatan);
         $thnAkademik = $json->thnAkademik;
         $negaraTujuan = $json->negaraTujuan;
-        $tanggalKunjungan = $json->tanggalKunjungan;
+        $tanggalKunjungan = date_create($json->tanggalKunjungan)->format("j F Y");
+        $organisasiTujuan = $json->organisasiTujuan;
         $pemesan = $request->pemesan;
-        $npm = $this->mahasiswaRepo->findMahasiswaById($pemesan);
+        $npm = $json->npm;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $tglLahir . ',' . $organisasiTujuan . ',' . $thnAkademik . ',' . $negaraTujuan . ',' . $tanggalKunjungan . '}';
+        //concat data input dgn format surat
+        $entry = '\mailentry{' . $nama . ',' . $tglLahir . ',' . $kewarganegaraan  . ',' . $tahunKe . ',' . $thnAkademik . ',' . $negaraTujuan . ',' . $tanggalKunjungan . ',' . $organisasiTujuan . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_pengantar_pembuatan_visa.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -629,11 +703,11 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_pengantar_pembuatan_visa.tex", "w");
+        //inject ke file baru  lalu compile
+        $file = fopen("arsip_surat/" . $npm . "_surat_pengantar_pembuatan_visa.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_pengantar_pembuatan_visa.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_pengantar_pembuatan_visa.tex');
 
         //store to db
         $historysurat = new Historysurat;
@@ -641,8 +715,8 @@ class HistorysuratController extends Controller
         $historysurat->perihal = 'APPLICATION FOR VISA SCHENGEN';
         $historysurat->penerimaSurat = $organisasiTujuan;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_pengantar_pembuatan_visa.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_pengantar_pembuatan_visa.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -654,18 +728,23 @@ class HistorysuratController extends Controller
         $noSurat = $request->noSurat;
         $nama = $json->nama;
         $npm = $json->npm;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $matkul = $json->matkul;
         $topik = $json->topik;
         $organisasi = $json->organisasi;
         $alamatOrganisasi = $json->alamatOrganisasi;
-        $kepada = $json->kepada;
-        $kota = $json->kota;
         $keperluanKunjungan = $json->keperluanKunjungan;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
         $entry = '\mailentry{' .
-          $noSurat . ',' . $nama . ',' . $npm . ',' . $prodi . ',' . $matkul . ',' . $topik . ',' . $organisasi . ',' . $alamatOrganisasi . ',' . $keperluanKunjungan . ',' .$kota . ',' . $kepada . ',' . '}';
+          $noSurat . ',' . $nama . ',' . $npm . ',' . $prodi . ',' . $matkul . ',' . $topik . ',' . $organisasi . ',' . $alamatOrganisasi . ',' . $keperluanKunjungan . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_pengantar_studi_lapangan_1orang.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -677,19 +756,19 @@ class HistorysuratController extends Controller
                 $stringFormat .= $entry;
             }
         }
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_pengantar_studi_lapangan_1orang.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_pengantar_studi_lapangan_1orang.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_pengantar_studi_lapangan_1orang.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_pengantar_studi_lapangan_1orang.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
-        $historysurat->perihal = 'Permohonan' . $keperluanKunjungan;
-        $historysurat->penerimaSurat = $kepada;
+        $historysurat->perihal = 'Permohonan ' . $keperluanKunjungan;
+        $historysurat->penerimaSurat = $organisasi;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_pengantar_studi_lapangan_1orang.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_pengantar_studi_lapangan_1orang.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -701,33 +780,24 @@ class HistorysuratController extends Controller
         $noSurat = $request->noSurat;
         $nama = $json->nama;
         $npm = $json->npm;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $matkul = $json->matkul;
         $topik = $json->topik;
         $organisasi = $json->organisasi;
         $alamatOrganisasi = $json->alamatOrganisasi;
         $keperluanKunjungan = $json->keperluanKunjungan;
-        $kepada = $json->kepada;
-        $kota = $json->kota;
         $namaAnggota = $json->namaAnggota;
         $npmAnggota = $json->npmAnggota;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $npm . ',' .
-          $prodi . ',' .
-          $matkul . ',' .
-          $topik . ',' .
-          $organisasi . ',' .
-          $alamatOrganisasi . ',' .
-          $keperluanKunjungan . ',' .
-          $kota . ',' .
-          $kepada . ',' .
-          $namaAnggota . ',' .
-          $npmAnggota . ',' .
-          '}';
+        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $npm . ',' . $prodi . ',' . $matkul . ',' . $topik . ',' . $organisasi . ',' . $alamatOrganisasi . ',' . $keperluanKunjungan . ',' . $namaAnggota . ',' . $npmAnggota . ',' . $tanggal .  '}';
         $fileTemplate = file('format_surat_latex/surat_pengantar_studi_lapangan_2orang.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -740,19 +810,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_pengantar_studi_lapangan_2orang.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_pengantar_studi_lapangan_2orang.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_pengantar_studi_lapangan_2orang.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_pengantar_studi_lapangan_2orang.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
-        $historysurat->perihal = 'Permohonan' . $keperluanKunjungan;
-        $historysurat->penerimaSurat = $kepada;
+        $historysurat->perihal = 'Permohonan ' . $keperluanKunjungan;
+        $historysurat->penerimaSurat = $organisasi;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_pengantar_studi_lapangan_2orang.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_pengantar_studi_lapangan_2orang.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -764,37 +834,26 @@ class HistorysuratController extends Controller
         $noSurat = $request->noSurat;
         $nama = $json->nama;
         $npm = $json->npm;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $matkul = $json->matkul;
         $topik = $json->topik;
         $organisasi = $json->organisasi;
         $alamatOrganisasi = $json->alamatOrganisasi;
         $keperluanKunjungan = $json->keperluanKunjungan;
-        $kepada = $json->kepada;
-        $kota = $json->kota;
         $namaAnggota1 = $json->namaAnggota1;
         $npmAnggota1 = $json->npmAnggota1;
         $namaAnggota2 = $json->namaAnggota2;
         $npmAnggota2 = $json->npmAnggota2;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $npm . ',' .
-          $prodi . ',' .
-          $matkul . ',' .
-          $topik . ',' .
-          $organisasi . ',' .
-          $alamatOrganisasi . ',' .
-          $keperluanKunjungan . ',' .
-          $kota . ',' .
-          $kepada . ',' .
-          $namaAnggota1 . ',' .
-          $npmAnggota1 . ',' .
-          $namaAnggota2 . ',' .
-          $npmAnggota2 . ',' .
-          '}';
+        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $npm . ',' . $prodi . ',' . $matkul . ',' . $topik . ',' . $organisasi . ',' . $alamatOrganisasi . ',' . $keperluanKunjungan . ',' . $namaAnggota1 . ',' . $npmAnggota1 . ',' . $namaAnggota2 . ',' . $npmAnggota2 . ',' . $tanggal .  '}';
         $fileTemplate = file('format_surat_latex/surat_pengantar_studi_lapangan_3orang.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -807,19 +866,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_pengantar_studi_lapangan_3orang.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_pengantar_studi_lapangan_3orang.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_pengantar_studi_lapangan_3orang.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_pengantar_studi_lapangan_3orang.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
-        $historysurat->perihal = 'Permohonan' . $keperluanKunjungan;
-        $historysurat->penerimaSurat = $kepada;
+        $historysurat->perihal = 'Permohonan ' . $keperluanKunjungan;
+        $historysurat->penerimaSurat = $organisasi;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_pengantar_studi_lapangan_3orang.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_pengantar_studi_lapangan_3orang.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -831,14 +890,12 @@ class HistorysuratController extends Controller
         $noSurat = $request->noSurat;
         $nama = $json->nama;
         $npm = $json->npm;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $matkul = $json->matkul;
         $topik = $json->topik;
         $organisasi = $json->organisasi;
         $alamatOrganisasi = $json->alamatOrganisasi;
         $keperluanKunjungan = $json->keperluanKunjungan;
-        $kepada = $json->kepada;
-        $kota = $json->kota;
         $namaAnggota1 = $json->namaAnggota1;
         $npmAnggota1 = $json->npmAnggota1;
         $namaAnggota2 = $json->namaAnggota2;
@@ -846,26 +903,15 @@ class HistorysuratController extends Controller
         $namaAnggota3 = $json->namaAnggota3;
         $npmAnggota3 = $json->npmAnggota3;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $npm . ',' .
-          $prodi . ',' .
-          $matkul . ',' .
-          $topik . ',' .
-          $organisasi . ',' .
-          $alamatOrganisasi . ',' .
-          $keperluanKunjungan . ',' .
-          $kota . ',' .
-          $kepada . ',' .
-          $namaAnggota1 . ',' .
-          $npmAnggota1 . ',' .
-          $namaAnggota2 . ',' .
-          $npmAnggota2 . ',' .
-          $namaAnggota3 . ',' .
-          $npmAnggota3 . ',' .
-          '}';
+        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $npm . ',' . $prodi . ',' . $matkul . ',' . $topik . ',' . $organisasi . ',' . $alamatOrganisasi . ',' . $keperluanKunjungan . ',' . $namaAnggota1 . ',' . $npmAnggota1 . ',' . $namaAnggota2 . ',' . $npmAnggota2 . ',' . $namaAnggota3 . ',' . $npmAnggota3 . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_pengantar_studi_lapangan_4orang.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -878,19 +924,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_pengantar_studi_lapangan_4orang.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_pengantar_studi_lapangan_4orang.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_pengantar_studi_lapangan_4orang.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_pengantar_studi_lapangan_4orang.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
-        $historysurat->perihal = 'Permohonan' . $keperluanKunjungan;
-        $historysurat->penerimaSurat = $kepada;
+        $historysurat->perihal = 'Permohonan ' . $keperluanKunjungan;
+        $historysurat->penerimaSurat = $organisasi;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_pengantar_studi_lapangan_4orang.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_pengantar_studi_lapangan_4orang.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -902,14 +948,12 @@ class HistorysuratController extends Controller
         $noSurat = $request->noSurat;
         $nama = $json->nama;
         $npm = $json->npm;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $matkul = $json->matkul;
         $topik = $json->topik;
         $organisasi = $json->organisasi;
         $alamatOrganisasi = $json->alamatOrganisasi;
         $keperluanKunjungan = $json->keperluanKunjungan;
-        $kepada = $json->kepada;
-        $kota = $json->kota;
         $namaAnggota1 = $json->namaAnggota1;
         $npmAnggota1 = $json->npmAnggota1;
         $namaAnggota2 = $json->namaAnggota2;
@@ -919,28 +963,15 @@ class HistorysuratController extends Controller
         $namaAnggota4 = $json->namaAnggota4;
         $npmAnggota4 = $json->npmAnggota4;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $npm . ',' .
-          $prodi . ',' .
-          $matkul . ',' .
-          $topik . ',' .
-          $organisasi . ',' .
-          $alamatOrganisasi . ',' .
-          $keperluanKunjungan . ',' .
-          $kota . ',' .
-          $kepada . ',' .
-          $namaAnggota1 . ',' .
-          $npmAnggota1 . ',' .
-          $namaAnggota2 . ',' .
-          $npmAnggota2 . ',' .
-          $namaAnggota3 . ',' .
-          $npmAnggota3 . ',' .
-          $namaAnggota4 . ',' .
-          $npmAnggota4 . ',' .
-          '}';
+        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $npm . ',' . $prodi . ',' . $matkul . ',' . $topik . ',' . $organisasi . ',' . $alamatOrganisasi . ',' . $keperluanKunjungan . ',' . $namaAnggota1 . ',' . $npmAnggota1 . ',' . $namaAnggota2 . ',' . $npmAnggota2 . ',' . $namaAnggota3 . ',' . $npmAnggota3 . ',' . $namaAnggota4 . ',' . $npmAnggota4 . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_pengantar_studi_lapangan_5orang.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -953,19 +984,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_pengantar_studi_lapangan_5orang.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_pengantar_studi_lapangan_5orang.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_pengantar_studi_lapangan_5orang.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_pengantar_studi_lapangan_5orang.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
-        $historysurat->perihal = 'Permohonan' . $keperluanKunjungan;
-        $historysurat->penerimaSurat = $kepada;
+        $historysurat->perihal = 'Permohonan ' . $keperluanKunjungan;
+        $historysurat->penerimaSurat = $organisasi;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_pengantar_studi_lapangan_5orang.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_pengantar_studi_lapangan_5orang.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -977,17 +1008,30 @@ class HistorysuratController extends Controller
         $noSurat = $request->noSurat;
         $nama = $json->nama;
         $npm = $json->npm;
-        $prodi = $json->prodi;
-        $fakultas = $json->fakultas;
-        $alamat = $json->alamat;
-        $cutiStudiKe = $json->cutiStudiKe;
-        $alasanCutiStudi = $json->alasanCutiStudi;
-        $dosenWali = $json->dosenWali;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $semester = $json->semester;
         $thnAkademik = $json->thnAkademik;
+        if($semester == 'Ganjil'){
+          $nextSemester = 'Genap';
+          $nextThnAkademik = $thnAkademik;
+        }
+        else if($semester == 'Genap'){
+          $nextSemester = 'Ganjil';
+          $getTahun = explode("/", $thnAkademik);
+          $nextThnAkademik = ($getTahun[0] + 1) . '/' . ($getTahun[1] + 1);
+        }
+        // dd($semester,$thnAkademik,$nextThnAkademik);
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $npm . ',' . $prodi . ',' . $fakultas . ',' . $alamat . ',' . $cutiStudiKe . ',' . $alasanCutiStudi . ',' . $dosenWali . ',' . $semester . ',' . $thnAkademik . '}';
+        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $npm . ',' . $tanggal . ',' . $semester . ',' . $thnAkademik . ',' .  $prodi . ',' . $nextSemester . ',' . $nextThnAkademik . '}';
+        // dd($entry);
         $fileTemplate = file('format_surat_latex/surat_izin_cuti_studi.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -1000,10 +1044,10 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_izin_cuti_studi.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_izin_cuti_studi.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_izin_cuti_studi.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_izin_cuti_studi.tex');
 
         //store to db
         $historysurat = new Historysurat;
@@ -1011,8 +1055,8 @@ class HistorysuratController extends Controller
         $historysurat->perihal = 'Surat Ijin Berhenti Studi Sementara';
         $historysurat->penerimaSurat = $nama;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $nama . '_surat_izin_cuti_studi.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_izin_cuti_studi.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -1024,14 +1068,23 @@ class HistorysuratController extends Controller
         $noSurat = $request->noSurat;
         $nama = $json->nama;
         $npm = $json->npm;
-        $alamat = $json->alamat;
-        $noTelepon = $json->noTelepon;
-        $namaOrtu = $json->namaOrtu;
-        $dosenWali = $json->dosenWali;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
+        // dd($prodi);
         $semester = $json->semester;
         $pemesan = $request->pemesan;
+        //tanggal mahasiswa mengisi formulir
+        $getTanggalBuat = date_create($request->tanggal);
+        $tanggalBuat = $getTanggalBuat->format("j F Y");
+        
+        //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $npm . ',' . $alamat . ',' . $noTelepon . ',' . $namaOrtu . ',' . $dosenWali . ',' . $semester . ',' . '}';
+        $entry = '\mailentry{' . $noSurat . ',' . $nama . ',' . $npm . ',' . $prodi . ',' . $tanggalBuat . ',' . $semester . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_pengunduran_diri.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -1044,10 +1097,10 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_pengunduran_diri.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_pengunduran_diri.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_pengunduran_diri.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_pengunduran_diri.tex');
 
         //store to db
         $historysurat = new Historysurat;
@@ -1055,8 +1108,8 @@ class HistorysuratController extends Controller
         $historysurat->perihal = 'Pengunduran diri';
         $historysurat->penerimaSurat = 'Rektor';
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_pengunduran_diri.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_pengunduran_diri.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -1066,33 +1119,29 @@ class HistorysuratController extends Controller
         $dataSurat = $request->data;
         $json = json_decode($dataSurat);
         $noSurat = $request->noSurat;
+        $semester = $json->semester;
+        $thnAkademik = $json->thnAkademik;
         $nama = $json->nama;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $npm = $json->npm;
         $namaWakil = $json->namaWakil;
         $prodiWakil = $json->prodiWakil;
         $npmWakil = $json->npmWakil;
-        $dosenWali = $json->dosenWali;
+        $dosenWali = Dosen::where('id',$json->dosenWali)->first()->nama_dosen;
         $alasan = $json->alasan;
         $kodeMK = $json->kodeMK;
         $matkul = $json->matkul;
         $sks = $json->sks;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $prodi . ',' .
-          $npm . ',' .
-          $namaWakil . ',' .
-          $prodiWakil . ',' .
-          $npmWakil . ',' .
-          $dosenWali . ',' .
-          $alasan . ',' .
-          $kodeMK . ',' .
-          $matkul . ',' .
-          $sks . ',' .
-          '}';
+        $entry = '\mailentry{' . $semester . ',' . $thnAkademik . ',' . $nama . ',' . $prodi . ',' . $npm . ',' . $namaWakil . ',' . $prodiWakil . ',' . $npmWakil . ',' . $dosenWali . ',' . $alasan . ',' . $kodeMK . ',' . $matkul . ',' . $sks . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_perwakilan_perwalian_1mk.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -1105,19 +1154,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_perwakilan_perwalian_1mk.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_perwakilan_perwalian_1mk.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_perwakilan_perwalian_1mk.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_perwakilan_perwalian_1mk.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
         $historysurat->perihal = '-';
-        $historysurat->penerimaSurat = '-';
+        $historysurat->penerimaSurat = Mahasiswa::where('id',$pemesan)->first()->dosen->nama_dosen;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_perwakilan_perwalian_1mk.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_perwakilan_perwalian_1mk.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -1127,55 +1176,32 @@ class HistorysuratController extends Controller
         $dataSurat = $request->data;
         $json = json_decode($dataSurat);
         $noSurat = $request->noSurat;
+        $semester = $json->semester;
+        $thnAkademik = $json->thnAkademik;
         $nama = $json->nama;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $npm = $json->npm;
         $namaWakil = $json->namaWakil;
         $prodiWakil = $json->prodiWakil;
         $npmWakil = $json->npmWakil;
-        $dosenWali = $json->dosenWali;
+        $dosenWali = Dosen::where('id',$json->dosenWali)->first()->nama_dosen;
         $alasan = $json->alasan;
+        $kodeMK1 = $json->kodeMK1;
         $matkul1 = $json->matkul1;
         $sks1 = $json->sks1;
+        $kodeMK2 = $json->kodeMK2;
         $matkul2 = $json->matkul2;
         $sks2 = $json->sks2;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $prodi . ',' .
-          $npm . ',' .
-          $namaWakil . ',' .
-          $prodiWakil . ',' .
-          $npmWakil . ',' .
-          $dosenWali . ',' .
-          $alasan . ',' .
-          $kodeMK1 = $json->kodeMK1;
-          $matkul1 = $json->matkul1;
-          $sks1 = $json->sks1;
-          $kodeMK2 = $json->kodeMK2;
-          $matkul2 = $json->matkul2;
-          $sks2 = $json->sks2;
-          $pemesan = $request->pemesan;
-
-          $entry = '\mailentry{' .
-            $noSurat . ',' .
-            $nama . ',' .
-            $prodi . ',' .
-            $npm . ',' .
-            $namaWakil . ',' .
-            $prodiWakil . ',' .
-            $npmWakil . ',' .
-            $dosenWali . ',' .
-            $alasan . ',' .
-            $kodeMK1 . ',' .
-            $matkul1 . ',' .
-            $sks1 . ',' .
-            $kodeMK2 . ',' .
-            $matkul2 . ',' .
-            $sks2 . ',' .
-          '}';
+        $entry = '\mailentry{' . $semester . ',' . $thnAkademik  . ',' . $nama . ',' . $prodi . ',' . $npm . ',' . $namaWakil . ',' . $prodiWakil . ',' . $npmWakil . ',' . $dosenWali . ',' . $alasan . ',' . $kodeMK1 . ',' . $matkul1 . ',' . $sks1 . ',' . $kodeMK2 . ',' . $matkul2 . ',' . $sks2 . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_perwakilan_perwalian_2mk.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -1188,19 +1214,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_perwakilan_perwalian_2mk.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_perwakilan_perwalian_2mk.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_perwakilan_perwalian_2mk.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_perwakilan_perwalian_2mk.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
         $historysurat->perihal = '-';
-        $historysurat->penerimaSurat = '-';
+        $historysurat->penerimaSurat = Mahasiswa::where('id',$pemesan)->first()->dosen->nama_dosen;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_perwakilan_perwalian_2mk.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_perwakilan_perwalian_2mk.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -1213,12 +1239,12 @@ class HistorysuratController extends Controller
         $semester = $json->semester;
         $thnAkademik = $json->thnAkademik;
         $nama = $json->nama;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $npm = $json->npm;
         $namaWakil = $json->namaWakil;
         $prodiWakil = $json->prodiWakil;
         $npmWakil = $json->npmWakil;
-        $dosenWali = $json->dosenWali;
+        $dosenWali = Dosen::where('id',$json->dosenWali)->first()->nama_dosen;
         $alasan = $json->alasan;
         $kodeMK1 = $json->kodeMK1;
         $matkul1 = $json->matkul1;
@@ -1230,8 +1256,15 @@ class HistorysuratController extends Controller
         $matkul3 = $json->matkul3;
         $sks3 = $json->sks3;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' . $semester . ',' .$thnAkademik . ','. $nama . ',' . $prodi . ',' . $npm . ',' . $namaWakil . ',' . $prodiWakil . ',' . $npmWakil . ',' . $alasan . ',' . $kodeMK1 . ',' . $matkul1 . ',' . $sks1 . ',' . $kodeMK2 . ',' . $matkul2 . ',' . $sks2 . ',' . $kodeMK3 . ',' . $matkul3 . ','. $sks3 .'}';
+        $entry = '\mailentry{' . $semester . ',' .$thnAkademik . ','. $nama . ',' . $prodi . ',' . $npm . ',' . $namaWakil . ',' . $prodiWakil . ',' . $npmWakil . ',' . $dosenWali . ',' . $alasan . ',' . $kodeMK1 . ',' . $matkul1 . ',' . $sks1 . ',' . $kodeMK2 . ',' . $matkul2 . ',' . $sks2 . ',' . $kodeMK3 . ',' . $matkul3 . ','. $sks3 . ',' . $tanggal . '}';
         // dd($entry);
         $fileTemplate = file('format_surat_latex/surat_perwakilan_perwalian_3mk.tex');
         $stringFormat = "";
@@ -1245,19 +1278,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_perwakilan_perwalian_3mk.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_perwakilan_perwalian_3mk.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_perwakilan_perwalian_3mk.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_perwakilan_perwalian_3mk.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
         $historysurat->perihal = '-';
-        $historysurat->penerimaSurat = '-';
+        $historysurat->penerimaSurat = Mahasiswa::where('id',$pemesan)->first()->dosen->nama_dosen;
         $historysurat->mahasiswa_id = $pemesan;
         $historysurat->formatsurat_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_perwakilan_perwalian_3mk.pdf';
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_perwakilan_perwalian_3mk.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -1267,13 +1300,15 @@ class HistorysuratController extends Controller
         $dataSurat = $request->data;
         $json = json_decode($dataSurat);
         $noSurat = $request->noSurat;
+        $semester = $json->semester;
+        $thnAkademik = $json->thnAkademik;
         $nama = $json->nama;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $npm = $json->npm;
         $namaWakil = $json->namaWakil;
         $prodiWakil = $json->prodiWakil;
         $npmWakil = $json->npmWakil;
-        $dosenWali = $json->dosenWali;
+        $dosenWali = Dosen::where('id',$json->dosenWali)->first()->nama_dosen;
         $alasan = $json->alasan;
         $kodeMK1 = $json->kodeMK1;
         $matkul1 = $json->matkul1;
@@ -1288,30 +1323,15 @@ class HistorysuratController extends Controller
         $matkul4 = $json->matkul4;
         $sks4 = $json->sks4;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $prodi . ',' .
-          $npm . ',' .
-          $namaWakil . ',' .
-          $prodiWakil . ',' .
-          $npmWakil . ',' .
-          $dosenWali . ',' .
-          $alasan . ',' .
-          $kodeMK1 . ',' .
-          $matkul1 . ',' .
-          $sks1 . ',' .
-          $kodeMK2 . ',' .
-          $matkul2 . ',' .
-          $sks2 . ',' .
-          $kodeMK3 . ',' .
-          $matkul3 . ',' .
-          $sks3 . ',' .
-          $kodeMK4 . ',' .
-          $matkul4 . ',' .
-          $sks4 . ',' .
-          '}';
+        $entry = '\mailentry{' . $semester . ',' . $thnAkademik  . ',' . $nama . ',' . $prodi . ',' . $npm . ',' . $namaWakil . ',' . $prodiWakil . ',' . $npmWakil . ',' . $dosenWali . ',' . $alasan . ',' . $kodeMK1 . ',' . $matkul1 . ',' . $sks1 . ',' . $kodeMK2 . ',' . $matkul2 . ',' . $sks2 . ',' . $kodeMK3 . ',' . $matkul3 . ',' . $sks3 . ',' . $kodeMK4 . ',' . $matkul4 . ',' . $sks4 . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_perwakilan_perwalian_4mk.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -1324,19 +1344,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_perwakilan_perwalian_4mk.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_perwakilan_perwalian_4mk.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_perwakilan_perwalian_4mk.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_perwakilan_perwalian_4mk.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
         $historysurat->perihal = '-';
-        $historysurat->penerimaSurat = '-';
+        $historysurat->penerimaSurat = Mahasiswa::where('id',$pemesan)->first()->dosen->nama_dosen;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_perwakilan_perwalian_4mk.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_perwakilan_perwalian_4mk.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -1346,13 +1366,15 @@ class HistorysuratController extends Controller
         $dataSurat = $request->data;
         $json = json_decode($dataSurat);
         $noSurat = $request->noSurat;
+        $semester = $json->semester;
+        $thnAkademik = $json->thnAkademik;
         $nama = $json->nama;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $npm = $json->npm;
         $namaWakil = $json->namaWakil;
         $prodiWakil = $json->prodiWakil;
         $npmWakil = $json->npmWakil;
-        $dosenWali = $json->dosenWali;
+        $dosenWali = Dosen::where('id',$json->dosenWali)->first()->nama_dosen;
         $alasan = $json->alasan;
         $kodeMK1 = $json->kodeMK1;
         $matkul1 = $json->matkul1;
@@ -1370,33 +1392,15 @@ class HistorysuratController extends Controller
         $matkul5 = $json->matkul5;
         $sks5 = $json->sks5;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $prodi . ',' .
-          $npm . ',' .
-          $namaWakil . ',' .
-          $prodiWakil . ',' .
-          $npmWakil . ',' .
-          $dosenWali . ',' .
-          $alasan . ',' .
-          $kodeMK1 . ',' .
-          $matkul1 . ',' .
-          $sks1 . ',' .
-          $kodeMK2 . ',' .
-          $matkul2 . ',' .
-          $sks2 . ',' .
-          $kodeMK3 . ',' .
-          $matkul3 . ',' .
-          $sks3 . ',' .
-          $kodeMK4 . ',' .
-          $matkul4 . ',' .
-          $sks4 . ',' .
-          $kodeMK5 . ',' .
-          $matkul5 . ',' .
-          $sks5 . ',' .
-          '}';
+        $entry = '\mailentry{' . $semester . ',' . $thnAkademik  . ',' . $nama . ',' . $prodi . ',' . $npm . ',' . $namaWakil . ',' . $prodiWakil . ',' . $npmWakil . ',' . $dosenWali . ',' . $alasan . ',' . $kodeMK1 . ',' . $matkul1 . ',' . $sks1 . ',' . $kodeMK2 . ',' . $matkul2 . ',' . $sks2 . ',' . $kodeMK3 . ',' . $matkul3 . ',' . $sks3 . ',' . $kodeMK4 . ',' . $matkul4 . ',' . $sks4 . ',' . $kodeMK5 . ',' . $matkul5 . ',' . $sks5 . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_perwakilan_perwalian_5mk.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -1409,19 +1413,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_perwakilan_perwalian_5mk.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_perwakilan_perwalian_5mk.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_perwakilan_perwalian_5mk.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_perwakilan_perwalian_5mk.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
         $historysurat->perihal = '-';
-        $historysurat->penerimaSurat = '-';
+        $historysurat->penerimaSurat = Mahasiswa::where('id',$pemesan)->first()->dosen->nama_dosen;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_perwakilan_perwalian_5mk.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_perwakilan_perwalian_5mk.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -1431,13 +1435,15 @@ class HistorysuratController extends Controller
         $dataSurat = $request->data;
         $json = json_decode($dataSurat);
         $noSurat = $request->noSurat;
+        $semester = $json->semester;
+        $thnAkademik = $json->thnAkademik;
         $nama = $json->nama;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $npm = $json->npm;
         $namaWakil = $json->namaWakil;
         $prodiWakil = $json->prodiWakil;
         $npmWakil = $json->npmWakil;
-        $dosenWali = $json->dosenWali;
+        $dosenWali = Dosen::where('id',$json->dosenWali)->first()->nama_dosen;
         $alasan = $json->alasan;
         $kodeMK1 = $json->kodeMK1;
         $matkul1 = $json->matkul1;
@@ -1458,36 +1464,15 @@ class HistorysuratController extends Controller
         $matkul6 = $json->matkul6;
         $sks6 = $json->sks6;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $prodi . ',' .
-          $npm . ',' .
-          $namaWakil . ',' .
-          $prodiWakil . ',' .
-          $npmWakil . ',' .
-          $dosenWali . ',' .
-          $alasan . ',' .
-          $kodeMK1 . ',' .
-          $matkul1 . ',' .
-          $sks1 . ',' .
-          $kodeMK2 . ',' .
-          $matkul2 . ',' .
-          $sks2 . ',' .
-          $kodeMK3 . ',' .
-          $matkul3 . ',' .
-          $sks3 . ',' .
-          $kodeMK4 . ',' .
-          $matkul4 . ',' .
-          $sks4 . ',' .
-          $kodeMK5 . ',' .
-          $matkul5 . ',' .
-          $sks5 . ',' .
-          $kodeMK6 . ',' .
-          $matkul6 . ',' .
-          $sks6 . ',' .
-          '}';
+        $entry = '\mailentry{' . $semester . ',' . $thnAkademik . ',' . $nama . ',' . $prodi . ',' . $npm . ',' . $namaWakil . ',' . $prodiWakil . ',' . $npmWakil . ',' . $dosenWali . ',' . $alasan . ',' . $kodeMK1 . ',' . $matkul1 . ',' . $sks1 . ',' . $kodeMK2 . ',' . $matkul2 . ',' . $sks2 . ',' . $kodeMK3 . ',' . $matkul3 . ',' . $sks3 . ',' . $kodeMK4 . ',' . $matkul4 . ',' . $sks4 . ',' . $kodeMK5 . ',' . $matkul5 . ',' . $sks5 . ',' . $kodeMK6 . ',' . $matkul6 . ',' . $sks6 . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_perwakilan_perwalian_6mk.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -1500,19 +1485,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_perwakilan_perwalian_6mk.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_perwakilan_perwalian_6mk.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_perwakilan_perwalian_6mk.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_perwakilan_perwalian_6mk.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
         $historysurat->perihal = '-';
-        $historysurat->penerimaSurat = '-';
+        $historysurat->penerimaSurat = Mahasiswa::where('id',$pemesan)->first()->dosen->nama_dosen;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_perwakilan_perwalian_6mk.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_perwakilan_perwalian_6mk.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -1522,13 +1507,15 @@ class HistorysuratController extends Controller
         $dataSurat = $request->data;
         $json = json_decode($dataSurat);
         $noSurat = $request->noSurat;
+        $semester = $json->semester;
+        $thnAkademik = $json->thnAkademik;
         $nama = $json->nama;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $npm = $json->npm;
         $namaWakil = $json->namaWakil;
         $prodiWakil = $json->prodiWakil;
         $npmWakil = $json->npmWakil;
-        $dosenWali = $json->dosenWali;
+        $dosenWali = Dosen::where('id',$json->dosenWali)->first()->nama_dosen;
         $alasan = $json->alasan;
         $kodeMK1 = $json->kodeMK1;
         $matkul1 = $json->matkul1;
@@ -1552,39 +1539,15 @@ class HistorysuratController extends Controller
         $matkul7 = $json->matkul7;
         $sks7 = $json->sks7;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $prodi . ',' .
-          $npm . ',' .
-          $namaWakil . ',' .
-          $prodiWakil . ',' .
-          $npmWakil . ',' .
-          $dosenWali . ',' .
-          $alasan . ',' .
-          $kodeMK1 . ',' .
-          $matkul1 . ',' .
-          $sks1 . ',' .
-          $kodeMK2 . ',' .
-          $matkul2 . ',' .
-          $sks2 . ',' .
-          $kodeMK3 . ',' .
-          $matkul3 . ',' .
-          $sks3 . ',' .
-          $kodeMK4 . ',' .
-          $matkul4 . ',' .
-          $sks4 . ',' .
-          $kodeMK5 . ',' .
-          $matkul5 . ',' .
-          $sks5 . ',' .
-          $kodeMK6 . ',' .
-          $matkul6 . ',' .
-          $sks6 . ',' .
-          $kodeMK7 . ',' .
-          $matkul7 . ',' .
-          $sks7 . ',' .
-          '}';
+        $entry = '\mailentry{' . $semester . ',' . $thnAkademik . ',' . $nama . ',' . $prodi . ',' . $npm . ',' . $namaWakil . ',' . $prodiWakil . ',' . $npmWakil . ',' . $dosenWali . ',' . $alasan . ',' . $kodeMK1 . ',' . $matkul1 . ',' . $sks1 . ',' . $kodeMK2 . ',' . $matkul2 . ',' . $sks2 . ',' . $kodeMK3 . ',' . $matkul3 . ',' . $sks3 . ',' . $kodeMK4 . ',' . $matkul4 . ',' . $sks4 . ',' . $kodeMK5 . ',' . $matkul5 . ',' . $sks5 . ',' . $kodeMK6 . ',' . $matkul6 . ',' . $sks6 . ',' . $kodeMK7 . ',' . $matkul7 . ',' . $sks7 . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_perwakilan_perwalian_7mk.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -1597,19 +1560,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_perwakilan_perwalian_7mk.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_perwakilan_perwalian_7mk.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_perwakilan_perwalian_7mk.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_perwakilan_perwalian_7mk.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
         $historysurat->perihal = '-';
-        $historysurat->penerimaSurat = '-';
+        $historysurat->penerimaSurat = Mahasiswa::where('id',$pemesan)->first()->dosen->nama_dosen;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_perwakilan_perwalian_7mk.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_perwakilan_perwalian_7mk.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -1619,13 +1582,15 @@ class HistorysuratController extends Controller
         $dataSurat = $request->data;
         $json = json_decode($dataSurat);
         $noSurat = $request->noSurat;
+        $semester = $json->semester;
+        $thnAkademik = $json->thnAkademik;
         $nama = $json->nama;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $npm = $json->npm;
         $namaWakil = $json->namaWakil;
         $prodiWakil = $json->prodiWakil;
         $npmWakil = $json->npmWakil;
-        $dosenWali = $json->dosenWali;
+        $dosenWali = Dosen::where('id',$json->dosenWali)->first()->nama_dosen;
         $alasan = $json->alasan;
         $kodeMK1 = $json->kodeMK1;
         $matkul1 = $json->matkul1;
@@ -1652,42 +1617,15 @@ class HistorysuratController extends Controller
         $matkul8 = $json->matkul8;
         $sks8 = $json->sks8;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $prodi . ',' .
-          $npm . ',' .
-          $namaWakil . ',' .
-          $prodiWakil . ',' .
-          $npmWakil . ',' .
-          $dosenWali . ',' .
-          $alasan . ',' .
-          $kodeMK1 . ',' .
-          $matkul1 . ',' .
-          $sks1 . ',' .
-          $kodeMK2 . ',' .
-          $matkul2 . ',' .
-          $sks2 . ',' .
-          $kodeMK3 . ',' .
-          $matkul3 . ',' .
-          $sks3 . ',' .
-          $kodeMK4 . ',' .
-          $matkul4 . ',' .
-          $sks4 . ',' .
-          $kodeMK5 . ',' .
-          $matkul5 . ',' .
-          $sks5 . ',' .
-          $kodeMK6 . ',' .
-          $matkul6 . ',' .
-          $sks6 . ',' .
-          $kodeMK7 . ',' .
-          $matkul7 . ',' .
-          $sks7 . ',' .
-          $kodeMK8 . ',' .
-          $matkul8 . ',' .
-          $sks8 . ',' .
-          '}';
+        $entry = '\mailentry{' . $semester . ',' . $thnAkademik . ',' . $nama . ',' . $prodi . ',' . $npm . ',' . $namaWakil . ',' . $prodiWakil . ',' . $npmWakil . ',' . $dosenWali . ',' . $alasan . ',' . $kodeMK1 . ',' . $matkul1 . ',' . $sks1 . ',' . $kodeMK2 . ',' . $matkul2 . ',' . $sks2 . ',' . $kodeMK3 . ',' . $matkul3 . ',' . $sks3 . ',' . $kodeMK4 . ',' . $matkul4 . ',' . $sks4 . ',' . $kodeMK5 . ',' . $matkul5 . ',' . $sks5 . ',' . $kodeMK6 . ',' . $matkul6 . ',' . $sks6 . ',' . $kodeMK7 . ',' . $matkul7 . ',' . $sks7 . ',' . $kodeMK8 . ',' . $matkul8 . ',' . $sks8 . ',' . $tanggal .  '}';
         $fileTemplate = file('format_surat_latex/surat_perwakilan_perwalian_8mk.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -1700,19 +1638,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_perwakilan_perwalian_8mk.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_perwakilan_perwalian_8mk.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_perwakilan_perwalian_8mk.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_perwakilan_perwalian_8mk.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
         $historysurat->perihal = '-';
-        $historysurat->penerimaSurat = '-';
+        $historysurat->penerimaSurat = Mahasiswa::where('id',$pemesan)->first()->dosen->nama_dosen;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_perwakilan_perwalian_8mk.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_perwakilan_perwalian_8mk.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -1722,13 +1660,15 @@ class HistorysuratController extends Controller
         $dataSurat = $request->data;
         $json = json_decode($dataSurat);
         $noSurat = $request->noSurat;
+        $semester = $json->semester;
+        $thnAkademik = $json->thnAkademik;
         $nama = $json->nama;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $npm = $json->npm;
         $namaWakil = $json->namaWakil;
         $prodiWakil = $json->prodiWakil;
         $npmWakil = $json->npmWakil;
-        $dosenWali = $json->dosenWali;
+        $dosenWali = Dosen::where('id',$json->dosenWali)->first()->nama_dosen;
         $alasan = $json->alasan;
         $kodeMK1 = $json->kodeMK1;
         $matkul1 = $json->matkul1;
@@ -1758,45 +1698,15 @@ class HistorysuratController extends Controller
         $matkul9 = $json->matkul9;
         $sks9 = $json->sks9;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $prodi . ',' .
-          $npm . ',' .
-          $namaWakil . ',' .
-          $prodiWakil . ',' .
-          $npmWakil . ',' .
-          $dosenWali . ',' .
-          $alasan . ',' .
-          $kodeMK1 . ',' .
-          $matkul1 . ',' .
-          $sks1 . ',' .
-          $kodeMK2 . ',' .
-          $matkul2 . ',' .
-          $sks2 . ',' .
-          $kodeMK3 . ',' .
-          $matkul3 . ',' .
-          $sks3 . ',' .
-          $kodeMK4 . ',' .
-          $matkul4 . ',' .
-          $sks4 . ',' .
-          $kodeMK5 . ',' .
-          $matkul5 . ',' .
-          $sks5 . ',' .
-          $kodeMK6 . ',' .
-          $matkul6 . ',' .
-          $sks6 . ',' .
-          $kodeMK7 . ',' .
-          $matkul7 . ',' .
-          $sks7 . ',' .
-          $kodeMK8 . ',' .
-          $matkul8 . ',' .
-          $sks8 . ',' .
-          $kodeMK9 . ',' .
-          $matkul9 . ',' .
-          $sks9 . ',' .
-          '}';
+        $entry = '\mailentry{' . $semester . ',' . $thnAkademik . ',' . $nama . ',' . $prodi . ',' . $npm . ',' . $namaWakil . ',' . $prodiWakil . ',' . $npmWakil . ',' . $dosenWali . ',' . $alasan . ',' . $kodeMK1 . ',' . $matkul1 . ',' . $sks1 . ',' . $kodeMK2 . ',' . $matkul2 . ',' . $sks2 . ',' . $kodeMK3 . ',' . $matkul3 . ',' . $sks3 . ',' . $kodeMK4 . ',' . $matkul4 . ',' . $sks4 . ',' . $kodeMK5 . ',' . $matkul5 . ',' . $sks5 . ',' . $kodeMK6 . ',' . $matkul6 . ',' . $sks6 . ',' . $kodeMK7 . ',' . $matkul7 . ',' . $sks7 . ',' . $kodeMK8 . ',' . $matkul8 . ',' . $sks8 . ',' . $kodeMK9 . ',' . $matkul9 . ',' . $sks9 . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_perwakilan_perwalian_9mk.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -1809,19 +1719,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_perwakilan_perwalian_9mk.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_perwakilan_perwalian_9mk.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_perwakilan_perwalian_9mk.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_perwakilan_perwalian_9mk.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
         $historysurat->perihal = '-';
-        $historysurat->penerimaSurat = '-';
+        $historysurat->penerimaSurat = Mahasiswa::where('id',$pemesan)->first()->dosen->nama_dosen;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_perwakilan_perwalian_9mk.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_perwakilan_perwalian_9mk.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -1831,13 +1741,15 @@ class HistorysuratController extends Controller
         $dataSurat = $request->data;
         $json = json_decode($dataSurat);
         $noSurat = $request->noSurat;
+        $semester = $json->semester;
+        $thnAkademik = $json->thnAkademik;
         $nama = $json->nama;
-        $prodi = $json->prodi;
+        $prodi = $this->jurusanRepo->findJurusanById($json->prodi)->nama_jurusan;
         $npm = $json->npm;
         $namaWakil = $json->namaWakil;
         $prodiWakil = $json->prodiWakil;
         $npmWakil = $json->npmWakil;
-        $dosenWali = $json->dosenWali;
+        $dosenWali = Dosen::where('id',$json->dosenWali)->first()->nama_dosen;
         $alasan = $json->alasan;
         $kodeMK1 = $json->kodeMK1;
         $matkul1 = $json->matkul1;
@@ -1870,48 +1782,15 @@ class HistorysuratController extends Controller
         $matkul10 = $json->matkul10;
         $sks10 = $json->sks10;
         $pemesan = $request->pemesan;
+         //tanggal surat dibuat
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $tanggal = $getTanggal->format("j F Y");
 
-        $entry = '\mailentry{' .
-          $noSurat . ',' .
-          $nama . ',' .
-          $prodi . ',' .
-          $npm . ',' .
-          $namaWakil . ',' .
-          $prodiWakil . ',' .
-          $npmWakil . ',' .
-          $dosenWali . ',' .
-          $alasan . ',' .
-          $kodeMK1 . ',' .
-          $matkul1 . ',' .
-          $sks1 . ',' .
-          $kodeMK2 . ',' .
-          $matkul2 . ',' .
-          $sks2 . ',' .
-          $kodeMK3 . ',' .
-          $matkul3 . ',' .
-          $sks3 . ',' .
-          $kodeMK4 . ',' .
-          $matkul4 . ',' .
-          $sks4 . ',' .
-          $kodeMK5 . ',' .
-          $matkul5 . ',' .
-          $sks5 . ',' .
-          $kodeMK6 . ',' .
-          $matkul6 . ',' .
-          $sks6 . ',' .
-          $kodeMK7 . ',' .
-          $matkul7 . ',' .
-          $sks7 . ',' .
-          $kodeMK8 . ',' .
-          $matkul8 . ',' .
-          $sks8 . ',' .
-          $kodeMK9 . ',' .
-          $matkul9 . ',' .
-          $sks9 . ',' .
-          $kodeMK10 . ',' .
-          $matkul10 . ',' .
-          $sks10 . ',' .
-          '}';
+        $entry = '\mailentry{' . $semester . ',' . $thnAkademik . ',' . $nama . ',' . $prodi . ',' . $npm . ',' . $namaWakil . ',' . $prodiWakil . ',' . $npmWakil . ',' . $dosenWali . ',' . $alasan . ',' . $kodeMK1 . ',' . $matkul1 . ',' . $sks1 . ',' . $kodeMK2 . ',' . $matkul2 . ',' . $sks2 . ',' . $kodeMK3 . ',' . $matkul3 . ',' . $sks3 . ',' . $kodeMK4 . ',' . $matkul4 . ',' . $sks4 . ',' . $kodeMK5 . ',' . $matkul5 . ',' . $sks5 . ',' . $kodeMK6 . ',' . $matkul6 . ',' . $sks6 . ',' .$kodeMK7 . ',' . $matkul7 . ',' . $sks7 . ',' . $kodeMK8 . ',' . $matkul8 . ',' . $sks8 . ',' . $kodeMK9 . ',' . $matkul9 . ',' . $sks9 . ',' . $kodeMK10 . ',' . $matkul10 . ',' . $sks10 . ',' . $tanggal . '}';
         $fileTemplate = file('format_surat_latex/surat_perwakilan_perwalian_10mk.tex');
         $stringFormat = "";
         $baris = count($fileTemplate);
@@ -1924,19 +1803,19 @@ class HistorysuratController extends Controller
             }
         }
         // dd($stringFormat);
-        $file = fopen("arsip_surat/" . $noSurat. "_" . $npm . "_surat_perwakilan_perwalian_10mk.tex", "w");
+        $file = fopen("arsip_surat/" . $npm . "_surat_perwakilan_perwalian_10mk.tex", "w");
         fwrite($file, $stringFormat);
         fclose($file);
-        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $noSurat . '_' . $npm . '_surat_perwakilan_perwalian_10mk.tex');
+        shell_exec('pdflatex -output-directory arsip_surat arsip_surat/' . $npm . '_surat_perwakilan_perwalian_10mk.tex');
 
         //store to db
         $historysurat = new Historysurat;
         $historysurat->no_surat = $noSurat;
         $historysurat->perihal = '-';
-        $historysurat->penerimaSurat = '-';
+        $historysurat->penerimaSurat = Mahasiswa::where('id',$pemesan)->first()->dosen->nama_dosen;
         $historysurat->mahasiswa_id = $pemesan;
-        $historysurat->formatsurats_id = $request->idFormatSurat;
-        $historysurat->link_arsip_surat = '127.0.0.1:8000/arsip_surat/' . $noSurat. '_' . $npm . '_surat_perwakilan_perwalian_10mk.pdf';
+        $historysurat->formatsurat_id = $request->idFormatSurat;
+        $historysurat->link_arsip_surat = 'arsip_surat/' . $npm . '_surat_perwakilan_perwalian_10mk.pdf';
         $historysurat->penandatanganan = false;
         $historysurat->pengambilan = false;
         $historysurat->save();
@@ -1944,7 +1823,6 @@ class HistorysuratController extends Controller
       }
   }
 }
-
 \end{lstlisting}
 
 \begin{lstlisting}[language=tex,basicstyle=\tiny,caption=MahasiswasuratController.php]
@@ -2172,6 +2050,7 @@ class PesanansuratController extends Controller
         $this->mahasiswaRepo = $mahasiswaRepo;
         //dd($this->orders->getAllActive());
     }
+    
     public function tampilkanPesananDiPejabat(Request $request){
       // $pesanansurats = $this->pesanansuratRepo->findAllPesananSurat();
 
@@ -2215,22 +2094,45 @@ class PesanansuratController extends Controller
 
       // CEK KALO USER ADALAH KETUA JURUSAN
       if($realUser->id == $realUser->jurusan->dosen->id){
-        $tempPesananSurats = PesananSurat::where('count','=',1)->get();
-        foreach ($tempPesananSurats as $key => $surat) {
-          array_push($results,$surat);
-        }
-      }
+          $tempPesananSurats = PesananSurat::where('count','=',1)->get();
+           foreach ($tempPesananSurats as $key => $surat) {
+             if($realUser->jurusan->id == $surat->mahasiswa->jurusan->id){
+               array_push($results,$surat);
+             }
+           }
+       }
 
-      foreach ($realUser->mahasiswas as $key => $mhs) {
-        foreach ($mhs->pesanansurats as $key => $surat) {
-          array_push($results,$surat);
-        }
-      }
-
+       foreach ($realUser->mahasiswas as $key => $mhs) {
+         foreach ($mhs->pesanansurats as $key => $surat) {
+           array_push($results,$surat);
+          }
+       }
       return view('pejabat.home_pejabat', [
         'pesanansurats' => $results,
         'user' => $realUser
-      ]);
+      ]);    
+    }
+
+    public function persetujuanPesananDiPejabat(Request $request){
+      $loggedInUser = Auth::user();
+      $realUser = $this->getRealUser($loggedInUser);
+      $results = [];
+       foreach ($realUser->mahasiswas as $key => $mhs) {
+         foreach ($mhs->pesanansurats as $key => $surat) {
+           array_push($results,$surat);
+          }
+       }
+      return view('pejabat.persetujuan_pejabat', [
+        'pesanansurats' => $results,
+        'user' => $realUser
+      ]);    
+    }
+
+    public function downloadLampiran(Request $request){
+      $reqLink = $request->link;
+      $getLink = explode("/", $reqLink);
+      $link = $getLink[1] . "/" . $getLink[2] . "/" . $getLink[3];
+      return redirect($link);
     }
 
     public function updateFormulir(Request $request){
@@ -2241,10 +2143,17 @@ class PesanansuratController extends Controller
       if($surat->count == 0){
         // DOSEN WALI = 0
         // dd($jsonArray);
-        $dosenWali = explode('|',$request->dosenWali);
+        $dosenWali = explode('|',$request->catatan);
         $jsonArray->persetujuanDosenWali = $dosenWali[0];
         $jsonArray->catatanDosenWali = $dosenWali[1];
         $surat->persetujuanDosenWali = true;
+        
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $surat->tglDosenWali = $getTanggal->format("j F Y");
         // dd($jsonArray);
       }else if($surat->count == 1){
       // KAPRODI = 1
@@ -2252,22 +2161,50 @@ class PesanansuratController extends Controller
         $jsonArray->persetujuanKaprodi = $kaprodi[0];
         $jsonArray->catatanKaprodi = $kaprodi[1];
         $surat->persetujuanKaprodi = true;
+
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $surat->tglKaprodi = $getTanggal->format("j F Y");
       }else if($surat->count == 2){
         // WD2 = 2
         $wd2 = explode('|',$request->wd2);
         $jsonArray->persetujuanWDII = $wd2[0];
         $jsonArray->catatanWDII = $wd2[1];
         $surat->persetujuanWDII = true;
+
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $surat->tglWDII = $getTanggal->format("j F Y");
       }else if($surat->count == 3){
         // WD1 = 3
         $wd1 = explode('|',$request->wd1);
         $jsonArray->persetujuanWDI = $wd1[0];
         $jsonArray->catatanWDI = $wd1[1];
         $surat->persetujuanWDI = true;
+
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $surat->tglWDI = $getTanggal->format("j F Y");
       }else if($surat->count == 4){
         // DEKAN = 4
-        $jsonArray->persetujuanDekan = $request->dekan;
-        $surat->persetujuanDekan = true;
+          $jsonArray->persetujuanDekan = $request->dekan;
+          $surat->persetujuanDekan = true;
+          
+        $getLocal = getdate();
+        $toString = implode(" ", $getLocal);
+        $getDate = explode(" ",$toString);
+        $arrTanggal = $getDate[6].'-'.$getDate[5].'-'.$getDate[3];
+        $getTanggal = date_create($arrTanggal);
+        $surat->tglDekan = $getTanggal->format("j F Y");  
       }else{
         dd("count lebih dari 4 "+$surat->count);
       }
@@ -2291,12 +2228,17 @@ class PesanansuratController extends Controller
       // $surat->save();
 
       $dataSurat = $request->dataSurat;
+      $json = json_decode($dataSurat);
+      $link = $json->link; 
+      // dd($link);
       $formatsurat_id = $request->idFormatSurat;
+      // dd($formatsurat_id);
       return view('pejabat.tambah_persetujuan',[
         'dataSurat' => $dataSurat,
         'formatsurat_id' => $formatsurat_id,
         'user' => $realUser,
-        'idPesananSurat' => $request->idPesananSurat
+        'idPesananSurat' => $request->idPesananSurat,
+        'link' => $link
       ]);
     }
 
@@ -2322,6 +2264,7 @@ class PesanansuratController extends Controller
           $semester = $json->semester;
           $thnAkademik = $json->thnAkademik;
           $formatsurat_id = $request->idFormatSurat;
+          $mhs = Mahasiswa::where('npm',$json->npm)->first();
           // $dataSurat = $this->buatJSON($request);
           // dd($request->formatsurat_id);
           // dd("asd "+$request->idPesananSurat);
@@ -2344,6 +2287,7 @@ class PesanansuratController extends Controller
                 'formatsurat_id' => $formatsurat_id,
                 'dataSurat' => $dataSurat,
                 'user' => $realUser,
+                'mhs' => $mhs,
                 'persetujuanDosenWali' => $arrayJson->persetujuanDosenWali,
                 'catatanDosenWali' => $arrayJson->catatanDosenWali,
                 'persetujuanKaprodi' => $arrayJson->persetujuanKaprodi,
@@ -2352,76 +2296,143 @@ class PesanansuratController extends Controller
                 'catatanWDII' => $arrayJson->catatanWDII,
                 'persetujuanWDI' => $arrayJson->persetujuanWDI,
                 'catatanWDI' => $arrayJson->catatanWDI,
-                'persetujuanDekan' => $persetujuanDekan,
-                'idPesananSurat' => $request->idPesananSurat
+                'persetujuanDekan' => $persetujuanDekan
               ]);
           }
           else if($realUser->id == "4"){
-              $persetujuanWDI = $request->persetujuan;
-              $catatanWDI = $request->catatan;
-              $arrayJson = json_decode(PesananSurat::find($idPesanansurat)->dataSurat);
-              return view('pejabat.preview_izin_cuti_studi', [
-                'idPesanansurat' => $idPesanansurat,
-                'nama' => $nama,
-                'npm' => $npm,
-                'prodi' => $prodi,
-                'fakultas' => $fakultas,
-                'alamat' => $alamat,
-                'cutiStudiKe' => $cutiStudiKe,
-                'alasanCutiStudi' => $alasanCutiStudi,
-                'dosenWali' => $dosenWali,
-                'semester' => $semester,
-                'thnAkademik' => $thnAkademik,
-                'formatsurat_id' => $formatsurat_id,
-                'dataSurat' => $dataSurat,
-                'user' => $realUser,
-                'persetujuanDosenWali' => $arrayJson->persetujuanDosenWali,
-                'catatanDosenWali' => $arrayJson->catatanDosenWali,
-                'persetujuanKaprodi' => $arrayJson->persetujuanKaprodi,
-                'catatanKaprodi' => $arrayJson->catatanKaprodi,
-                'persetujuanWDII' => $arrayJson->persetujuanWDII,
-                'catatanWDII' => $arrayJson->catatanWDII,
-                'persetujuanWDI' => $persetujuanWDI,
-                'catatanWDI' => $catatanWDI,
-                'persetujuanDekan' => '-'
+            $surat = PesananSurat::find($idPesanansurat);
+              // dd($surat);
+              if($surat->count == 0){
+                $persetujuanDosenWali = $request->persetujuan;
+                $catatanDosenWali = $request->catatan;
+                return view('pejabat.preview_izin_cuti_studi', [
+                  'idPesanansurat' => $idPesanansurat,
+                  'nama' => $nama,
+                  'npm' => $npm,
+                  'prodi' => $prodi,
+                  'fakultas' => $fakultas,
+                  'alamat' => $alamat,
+                  'cutiStudiKe' => $cutiStudiKe,
+                  'alasanCutiStudi' => $alasanCutiStudi,
+                  'dosenWali' => $dosenWali,
+                  'semester' => $semester,
+                  'thnAkademik' => $thnAkademik,
+                  'formatsurat_id' => $formatsurat_id,
+                  'dataSurat' => $dataSurat,
+                  'user' => $realUser,
+                  'mhs' => $mhs,
+                  'persetujuanDosenWali' => $persetujuanDosenWali,
+                  'catatanDosenWali' => $catatanDosenWali,
+                  'persetujuanKaprodi' => '-',
+                  'catatanKaprodi' => '-',
+                  'persetujuanWDII' => '-',
+                  'catatanWDII' => '-',
+                  'persetujuanWDI'  => '-',
+                  'catatanWDI' => '-',
+                  'persetujuanDekan' => '-'
+                ]);
+              }
+              else{
+                $persetujuanWDI = $request->persetujuan;
+                $catatanWDI = $request->catatan;
+                $arrayJson = json_decode(PesananSurat::find($idPesanansurat)->dataSurat);
+                return view('pejabat.preview_izin_cuti_studi', [
+                  'idPesanansurat' => $idPesanansurat,
+                  'nama' => $nama,
+                  'npm' => $npm,
+                  'prodi' => $prodi,
+                  'fakultas' => $fakultas,
+                  'alamat' => $alamat,
+                  'cutiStudiKe' => $cutiStudiKe,
+                  'alasanCutiStudi' => $alasanCutiStudi,
+                  'dosenWali' => $dosenWali,
+                  'semester' => $semester,
+                  'thnAkademik' => $thnAkademik,
+                  'formatsurat_id' => $formatsurat_id,
+                  'dataSurat' => $dataSurat,
+                  'user' => $realUser,
+                  'mhs' => $mhs,
+                  'persetujuanDosenWali' => $arrayJson->persetujuanDosenWali,
+                  'catatanDosenWali' => $arrayJson->catatanDosenWali,
+                  'persetujuanKaprodi' => $arrayJson->persetujuanKaprodi,
+                  'catatanKaprodi' => $arrayJson->catatanKaprodi,
+                  'persetujuanWDII' => $arrayJson->persetujuanWDII,
+                  'catatanWDII' => $arrayJson->catatanWDII,
+                  'persetujuanWDI' => $persetujuanWDI,
+                  'catatanWDI' => $catatanWDI,
+                  'persetujuanDekan' => '-'
 
-              ]);
+                ]);
+              }
           }
           else if($realUser->id == "3"){
-              $persetujuanWDII = $request->persetujuan;
-              $catatanWDII = $request->catatan;
-              $arrayJson = json_decode(PesananSurat::find($idPesanansurat)->dataSurat);
-              // dd($arrayJson);
-              return view('pejabat.preview_izin_cuti_studi', [
-                'idPesanansurat' => $idPesanansurat,
-                'nama' => $nama,
-                'npm' => $npm,
-                'prodi' => $prodi,
-                'fakultas' => $fakultas,
-                'alamat' => $alamat,
-                'cutiStudiKe' => $cutiStudiKe,
-                'alasanCutiStudi' => $alasanCutiStudi,
-                'dosenWali' => $dosenWali,
-                'semester' => $semester,
-                'thnAkademik' => $thnAkademik,
-                'formatsurat_id' => $formatsurat_id,
-                'dataSurat' => $dataSurat,
-                'user' => $realUser,
-                'persetujuanDosenWali' => $arrayJson->persetujuanDosenWali,
-                'catatanDosenWali' => $arrayJson->catatanDosenWali,
-                'persetujuanKaprodi' => $arrayJson->persetujuanKaprodi,
-                'catatanKaprodi' => $arrayJson->catatanKaprodi,
-                'persetujuanWDII' => $persetujuanWDII,
-                'catatanWDII' => $catatanWDII,
-                'persetujuanWDI'  => '-',
-                'catatanWDI' => '-',
-                'persetujuanDekan' => '-'
+            $surat = PesananSurat::find($idPesanansurat);
+              // dd($surat);
+              if($surat->count == 0){
+                $persetujuanDosenWali = $request->persetujuan;
+                $catatanDosenWali = $request->catatan;
+                return view('pejabat.preview_izin_cuti_studi', [
+                  'idPesanansurat' => $idPesanansurat,
+                  'nama' => $nama,
+                  'npm' => $npm,
+                  'prodi' => $prodi,
+                  'fakultas' => $fakultas,
+                  'alamat' => $alamat,
+                  'cutiStudiKe' => $cutiStudiKe,
+                  'alasanCutiStudi' => $alasanCutiStudi,
+                  'dosenWali' => $dosenWali,
+                  'semester' => $semester,
+                  'thnAkademik' => $thnAkademik,
+                  'formatsurat_id' => $formatsurat_id,
+                  'dataSurat' => $dataSurat,
+                  'user' => $realUser,
+                  'mhs' => $mhs,
+                  'persetujuanDosenWali' => $persetujuanDosenWali,
+                  'catatanDosenWali' => $catatanDosenWali,
+                  'persetujuanKaprodi' => '-',
+                  'catatanKaprodi' => '-',
+                  'persetujuanWDII' => '-',
+                  'catatanWDII' => '-',
+                  'persetujuanWDI'  => '-',
+                  'catatanWDI' => '-',
+                  'persetujuanDekan' => '-'
+                ]);
+              }
+              else{
+                $persetujuanWDII = $request->persetujuan;
+                $catatanWDII = $request->catatan;
+                $arrayJson = json_decode(PesananSurat::find($idPesanansurat)->dataSurat);
+                // dd($arrayJson);
+                return view('pejabat.preview_izin_cuti_studi', [
+                  'idPesanansurat' => $idPesanansurat,
+                  'nama' => $nama,
+                  'npm' => $npm,
+                  'prodi' => $prodi,
+                  'fakultas' => $fakultas,
+                  'alamat' => $alamat,
+                  'cutiStudiKe' => $cutiStudiKe,
+                  'alasanCutiStudi' => $alasanCutiStudi,
+                  'dosenWali' => $dosenWali,
+                  'semester' => $semester,
+                  'thnAkademik' => $thnAkademik,
+                  'formatsurat_id' => $formatsurat_id,
+                  'dataSurat' => $dataSurat,
+                  'user' => $realUser,
+                  'mhs' => $mhs,
+                  'persetujuanDosenWali' => $arrayJson->persetujuanDosenWali,
+                  'catatanDosenWali' => $arrayJson->catatanDosenWali,
+                  'persetujuanKaprodi' => $arrayJson->persetujuanKaprodi,
+                  'catatanKaprodi' => $arrayJson->catatanKaprodi,
+                  'persetujuanWDII' => $persetujuanWDII,
+                  'catatanWDII' => $catatanWDII,
+                  'persetujuanWDI'  => '-',
+                  'catatanWDI' => '-',
+                  'persetujuanDekan' => '-'
 
-              ]);
+                ]);
+              }
           }
           else if($realUser->id == "6"){
-
-
               $surat = PesananSurat::find($idPesanansurat);
               // dd($surat);
               if($surat->count == 0){
@@ -2442,6 +2453,7 @@ class PesanansuratController extends Controller
                   'formatsurat_id' => $formatsurat_id,
                   'dataSurat' => $dataSurat,
                   'user' => $realUser,
+                  'mhs' => $mhs,
                   'persetujuanDosenWali' => $persetujuanDosenWali,
                   'catatanDosenWali' => $catatanDosenWali,
                   'persetujuanKaprodi' => '-',
@@ -2473,6 +2485,139 @@ class PesanansuratController extends Controller
                   'formatsurat_id' => $formatsurat_id,
                   'dataSurat' => $dataSurat,
                   'user' => $realUser,
+                  'mhs' => $mhs,
+                  'persetujuanDosenWali' => $jsonArray->persetujuanDosenWali,
+                  'catatanDosenWali' => $jsonArray->catatanDosenWali,
+                  'persetujuanKaprodi' => $persetujuanKaprodi,
+                  'catatanKaprodi' => $catatanKaprodi,
+                  'persetujuanWDII' => '-',
+                  'catatanWDII' => '-',
+                  'persetujuanWDI'  => '-',
+                  'catatanWDI' => '-',
+                  'persetujuanDekan' => '-'
+                ]);
+              }
+          }
+          else if($realUser->id == "8"){
+              $surat = PesananSurat::find($idPesanansurat);
+              // dd($surat);
+              if($surat->count == 0){
+                $persetujuanDosenWali = $request->persetujuan;
+                $catatanDosenWali = $request->catatan;
+                return view('pejabat.preview_izin_cuti_studi', [
+                  'idPesanansurat' => $idPesanansurat,
+                  'nama' => $nama,
+                  'npm' => $npm,
+                  'prodi' => $prodi,
+                  'fakultas' => $fakultas,
+                  'alamat' => $alamat,
+                  'cutiStudiKe' => $cutiStudiKe,
+                  'alasanCutiStudi' => $alasanCutiStudi,
+                  'dosenWali' => $dosenWali,
+                  'semester' => $semester,
+                  'thnAkademik' => $thnAkademik,
+                  'formatsurat_id' => $formatsurat_id,
+                  'dataSurat' => $dataSurat,
+                  'user' => $realUser,
+                  'mhs' => $mhs,
+                  'persetujuanDosenWali' => $persetujuanDosenWali,
+                  'catatanDosenWali' => $catatanDosenWali,
+                  'persetujuanKaprodi' => '-',
+                  'catatanKaprodi' => '-',
+                  'persetujuanWDII' => '-',
+                  'catatanWDII' => '-',
+                  'persetujuanWDI'  => '-',
+                  'catatanWDI' => '-',
+                  'persetujuanDekan' => '-'
+                ]);
+              }else{
+                // dd("asd");
+                $persetujuanKaprodi = $request->persetujuan;
+                $catatanKaprodi = $request->catatan;
+                $jsonArray = json_decode(PesananSurat::find($idPesanansurat)->dataSurat);
+                // dd($jsonArray);
+                return view('pejabat.preview_izin_cuti_studi', [
+                  'idPesanansurat' => $idPesanansurat,
+                  'nama' => $nama,
+                  'npm' => $npm,
+                  'prodi' => $prodi,
+                  'fakultas' => $fakultas,
+                  'alamat' => $alamat,
+                  'cutiStudiKe' => $cutiStudiKe,
+                  'alasanCutiStudi' => $alasanCutiStudi,
+                  'dosenWali' => $dosenWali,
+                  'semester' => $semester,
+                  'thnAkademik' => $thnAkademik,
+                  'formatsurat_id' => $formatsurat_id,
+                  'dataSurat' => $dataSurat,
+                  'user' => $realUser,
+                  'mhs' => $mhs,
+                  'persetujuanDosenWali' => $jsonArray->persetujuanDosenWali,
+                  'catatanDosenWali' => $jsonArray->catatanDosenWali,
+                  'persetujuanKaprodi' => $persetujuanKaprodi,
+                  'catatanKaprodi' => $catatanKaprodi,
+                  'persetujuanWDII' => '-',
+                  'catatanWDII' => '-',
+                  'persetujuanWDI'  => '-',
+                  'catatanWDI' => '-',
+                  'persetujuanDekan' => '-'
+                ]);
+              }
+          }
+          else if($realUser->id == "9"){
+              $surat = PesananSurat::find($idPesanansurat);
+              // dd($surat);
+              if($surat->count == 0){
+                $persetujuanDosenWali = $request->persetujuan;
+                $catatanDosenWali = $request->catatan;
+                return view('pejabat.preview_izin_cuti_studi', [
+                  'idPesanansurat' => $idPesanansurat,
+                  'nama' => $nama,
+                  'npm' => $npm,
+                  'prodi' => $prodi,
+                  'fakultas' => $fakultas,
+                  'alamat' => $alamat,
+                  'cutiStudiKe' => $cutiStudiKe,
+                  'alasanCutiStudi' => $alasanCutiStudi,
+                  'dosenWali' => $dosenWali,
+                  'semester' => $semester,
+                  'thnAkademik' => $thnAkademik,
+                  'formatsurat_id' => $formatsurat_id,
+                  'dataSurat' => $dataSurat,
+                  'user' => $realUser,
+                  'mhs' => $mhs,
+                  'persetujuanDosenWali' => $persetujuanDosenWali,
+                  'catatanDosenWali' => $catatanDosenWali,
+                  'persetujuanKaprodi' => '-',
+                  'catatanKaprodi' => '-',
+                  'persetujuanWDII' => '-',
+                  'catatanWDII' => '-',
+                  'persetujuanWDI'  => '-',
+                  'catatanWDI' => '-',
+                  'persetujuanDekan' => '-'
+                ]);
+              }else{
+                // dd("asd");
+                $persetujuanKaprodi = $request->persetujuan;
+                $catatanKaprodi = $request->catatan;
+                $jsonArray = json_decode(PesananSurat::find($idPesanansurat)->dataSurat);
+                // dd($jsonArray);
+                return view('pejabat.preview_izin_cuti_studi', [
+                  'idPesanansurat' => $idPesanansurat,
+                  'nama' => $nama,
+                  'npm' => $npm,
+                  'prodi' => $prodi,
+                  'fakultas' => $fakultas,
+                  'alamat' => $alamat,
+                  'cutiStudiKe' => $cutiStudiKe,
+                  'alasanCutiStudi' => $alasanCutiStudi,
+                  'dosenWali' => $dosenWali,
+                  'semester' => $semester,
+                  'thnAkademik' => $thnAkademik,
+                  'formatsurat_id' => $formatsurat_id,
+                  'dataSurat' => $dataSurat,
+                  'user' => $realUser,
+                  'mhs' => $mhs,
                   'persetujuanDosenWali' => $jsonArray->persetujuanDosenWali,
                   'catatanDosenWali' => $jsonArray->catatanDosenWali,
                   'persetujuanKaprodi' => $persetujuanKaprodi,
@@ -2503,6 +2648,7 @@ class PesanansuratController extends Controller
                 'formatsurat_id' => $formatsurat_id,
                 'dataSurat' => $dataSurat,
                 'user' => $realUser,
+                'mhs' => $mhs,
                 'persetujuanDosenWali' => $persetujuanDosenWali,
                 'catatanDosenWali' => $catatanDosenWali,
                 'persetujuanKaprodi' => '-',
@@ -2514,61 +2660,361 @@ class PesanansuratController extends Controller
                 'persetujuanDekan' => '-'
               ]);
           }
-
           // dd($request);
-
         }
         else if($request->formatsurat_id == "10"){
-          $nama = $request->nama;
-          $npm = $request->npm;
-          $alamat = $request->alamat;
-          $noTelepon = $request->noTelepon;
-          $namaOrtu = $request->namaOrtu;
-          $dosenWali = $request->dosenWali;
-          $semester = $request->semester;
+          $dataSurat = $request->dataSurat;
+          $json = json_decode($dataSurat);
+          $nirm = $json->nirm;
+          $nama = $json->nama;
+          $npm = $json->npm;
+          $alamat = $json->alamat;
+          $noTelepon = $json->noTelepon;
+          $namaOrtu = $json->namaOrtu;
+          $dosenWali = $json->dosenWali;
+          $semester = $json->semester;
+          $formatsurat_id = $request->formatsurat_id;
+          $mhs = Mahasiswa::where('npm',$json->npm)->first();
           if($realUser->id == "5"){
               $persetujuanDekan = $request->persetujuan;
+              $catatanDekan = $request->catatan;
+              $arrayJson = json_decode(PesananSurat::find($idPesanansurat)->dataSurat);
+              return view('pejabat.preview_izin_pengunduran_diri', [
+                'idPesanansurat' => $idPesanansurat,
+                'nirm' => $nirm,
+                'nama' => $nama,
+                'npm' => $npm,
+                'alamat' => $alamat,
+                'noTelepon' => $noTelepon,
+                'namaOrtu' => $namaOrtu,
+                'semester' => $semester,
+                'persetujuanDosenWali' => $arrayJson->persetujuanDosenWali,
+                'catatanDosenWali' => $arrayJson->catatanDosenWali,
+                'persetujuanKaprodi' => $arrayJson->persetujuanKaprodi,
+                'catatanKaprodi' => $arrayJson->catatanKaprodi,
+                'persetujuanWDII' => $arrayJson->persetujuanWDII,
+                'catatanWDII' => $arrayJson->catatanWDII,
+                'persetujuanWDI' => $arrayJson->persetujuanWDI,
+                'catatanWDI' => $arrayJson->catatanWDI,
+                'persetujuanDekan' => $persetujuanDekan,
+                'catatanDekan' => $catatanDekan,
+                'formatsurat_id' => $formatsurat_id,
+                'dataSurat' => $dataSurat,
+                'user' => $realUser
+              ]);
           }
           else if($realUser->id == "4"){
+            $surat = PesananSurat::find($idPesanansurat);
+            if($surat->count == 0){
+              $persetujuanDosenWali = $request->persetujuan;
+              $catatanDosenWali = $request->catatan;
+              return view('pejabat.preview_izin_pengunduran_diri', [
+                'idPesanansurat' => $idPesanansurat,
+                'nirm' => $nirm,
+                'nama' => $nama,
+                'npm' => $npm,
+                'alamat' => $alamat,
+                'noTelepon' => $noTelepon,
+                'namaOrtu' => $namaOrtu,
+                'semester' => $semester,
+                'persetujuanDosenWali' => $persetujuanDosenWali,
+                'catatanDosenWali' => $catatanDosenWali,
+                'persetujuanKaprodi' => '-',
+                'catatanKaprodi' => '-',
+                'persetujuanWDII' => '-',
+                'catatanWDII' => '-',
+                'persetujuanWDI' => '-',
+                'catatanWDI' => '-',
+                'persetujuanDekan' => '-',
+                'catatanDekan' => '-',
+                'formatsurat_id' => $formatsurat_id,
+                'dataSurat' => $dataSurat,
+                'user' => $realUser
+              ]);
+            }else{
               $persetujuanWDI = $request->persetujuan;
               $catatanWDI = $request->catatan;
+              $jsonArray = json_decode(PesananSurat::find($idPesanansurat)->dataSurat);
+              return view('pejabat.preview_izin_pengunduran_diri', [
+                'idPesanansurat' => $idPesanansurat,
+                'nirm' => $nirm,
+                'nama' => $nama,
+                'npm' => $npm,
+                'alamat' => $alamat,
+                'noTelepon' => $noTelepon,
+                'namaOrtu' => $namaOrtu,
+                'semester' => $semester,
+                'persetujuanDosenWali' => $jsonArray->persetujuanDosenWali,
+                'catatanDosenWali' => $jsonArray->catatanDosenWali,
+                'persetujuanKaprodi' => $jsonArray->persetujuanKaprodi,
+                'catatanKaprodi' => $jsonArray->catatanKaprodi,
+                'persetujuanWDII' => $jsonArray->persetujuanWDII,
+                'catatanWDII' => $jsonArray->catatanWDII,
+                'persetujuanWDI' => $persetujuanWDI,
+                'catatanWDI' => $catatanWDI,
+                'persetujuanDekan' => '-',
+                'catatanDekan' => '-',
+                'formatsurat_id' => $formatsurat_id,
+                'dataSurat' => $dataSurat,
+                'user' => $realUser
+              ]);
+            }
           }
           else if($realUser->id == "3"){
+            $surat = PesananSurat::find($idPesanansurat);
+            if($surat->count == 0){
+              $persetujuanDosenWali = $request->persetujuan;
+              $catatanDosenWali = $request->catatan;
+              return view('pejabat.preview_izin_pengunduran_diri', [
+                'idPesanansurat' => $idPesanansurat,
+                'nirm' => $nirm,
+                'nama' => $nama,
+                'npm' => $npm,
+                'alamat' => $alamat,
+                'noTelepon' => $noTelepon,
+                'namaOrtu' => $namaOrtu,
+                'semester' => $semester,
+                'persetujuanDosenWali' => $persetujuanDosenWali,
+                'catatanDosenWali' => $catatanDosenWali,
+                'persetujuanKaprodi' => '-',
+                'catatanKaprodi' => '-',
+                'persetujuanWDII' => '-',
+                'catatanWDII' => '-',
+                'persetujuanWDI' => '-',
+                'catatanWDI' => '-',
+                'persetujuanDekan' => '-',
+                'catatanDekan' => '-',
+                'formatsurat_id' => $formatsurat_id,
+                'dataSurat' => $dataSurat,
+                'user' => $realUser
+              ]);
+            }else{
               $persetujuanWDII = $request->persetujuan;
               $catatanWDII = $request->catatan;
+              $jsonArray = json_decode(PesananSurat::find($idPesanansurat)->dataSurat);
+              return view('pejabat.preview_izin_pengunduran_diri', [
+                'idPesanansurat' => $idPesanansurat,
+                'nirm' => $nirm,
+                'nama' => $nama,
+                'npm' => $npm,
+                'alamat' => $alamat,
+                'noTelepon' => $noTelepon,
+                'namaOrtu' => $namaOrtu,
+                'semester' => $semester,
+                'persetujuanDosenWali' => $jsonArray->persetujuanDosenWali,
+                'catatanDosenWali' => $jsonArray->catatanDosenWali,
+                'persetujuanKaprodi' => $jsonArray->persetujuanKaprodi,
+                'catatanKaprodi' => $jsonArray->catatanKaprodi,
+                'persetujuanWDII' => $persetujuanWDII,
+                'catatanWDII' => $catatanWDII,
+                'persetujuanWDI' => '-',
+                'catatanWDI' => '-',
+                'persetujuanDekan' => '-',
+                'catatanDekan' => '-',
+                'formatsurat_id' => $formatsurat_id,
+                'dataSurat' => $dataSurat,
+                'user' => $realUser
+              ]);
+            }
           }
           else if($realUser->id == "6"){
+            $surat = PesananSurat::find($idPesanansurat);
+            if($surat->count == 0){
+              $persetujuanDosenWali = $request->persetujuan;
+              $catatanDosenWali = $request->catatan;
+              return view('pejabat.preview_izin_pengunduran_diri', [
+                'idPesanansurat' => $idPesanansurat,
+                'nirm' => $nirm,
+                'nama' => $nama,
+                'npm' => $npm,
+                'alamat' => $alamat,
+                'noTelepon' => $noTelepon,
+                'namaOrtu' => $namaOrtu,
+                'semester' => $semester,
+                'persetujuanDosenWali' => $persetujuanDosenWali,
+                'catatanDosenWali' => $catatanDosenWali,
+                'persetujuanKaprodi' => '-',
+                'catatanKaprodi' => '-',
+                'persetujuanWDII' => '-',
+                'catatanWDII' => '-',
+                'persetujuanWDI' => '-',
+                'catatanWDI' => '-',
+                'persetujuanDekan' => '-',
+                'catatanDekan' => '-',
+                'formatsurat_id' => $formatsurat_id,
+                'dataSurat' => $dataSurat,
+                'user' => $realUser
+              ]);
+            }else{
               $persetujuanKaprodi = $request->persetujuan;
               $catatanKaprodi = $request->catatan;
+              $jsonArray = json_decode(PesananSurat::find($idPesanansurat)->dataSurat);
+              return view('pejabat.preview_izin_pengunduran_diri', [
+                'idPesanansurat' => $idPesanansurat,
+                'nirm' => $nirm,
+                'nama' => $nama,
+                'npm' => $npm,
+                'alamat' => $alamat,
+                'noTelepon' => $noTelepon,
+                'namaOrtu' => $namaOrtu,
+                'semester' => $semester,
+                'persetujuanDosenWali' => $jsonArray->persetujuanDosenWali,
+                'catatanDosenWali' => $jsonArray->catatanDosenWali,
+                'persetujuanKaprodi' => $persetujuanKaprodi,
+                'catatanKaprodi' => $catatanKaprodi,
+                'persetujuanWDII' => '-',
+                'catatanWDII' => '-',
+                'persetujuanWDI' => '-',
+                'catatanWDI' => '-',
+                'persetujuanDekan' => '-',
+                'catatanDekan' => '-',
+                'formatsurat_id' => $formatsurat_id,
+                'dataSurat' => $dataSurat,
+                'user' => $realUser
+              ]);
+            }
+          }
+          else if($realUser->id == "8"){
+            $surat = PesananSurat::find($idPesanansurat);
+            if($surat->count == 0){
+              $persetujuanDosenWali = $request->persetujuan;
+              $catatanDosenWali = $request->catatan;
+              return view('pejabat.preview_izin_pengunduran_diri', [
+                'idPesanansurat' => $idPesanansurat,
+                'nirm' => $nirm,
+                'nama' => $nama,
+                'npm' => $npm,
+                'alamat' => $alamat,
+                'noTelepon' => $noTelepon,
+                'namaOrtu' => $namaOrtu,
+                'semester' => $semester,
+                'persetujuanDosenWali' => $persetujuanDosenWali,
+                'catatanDosenWali' => $catatanDosenWali,
+                'persetujuanKaprodi' => '-',
+                'catatanKaprodi' => '-',
+                'persetujuanWDII' => '-',
+                'catatanWDII' => '-',
+                'persetujuanWDI' => '-',
+                'catatanWDI' => '-',
+                'persetujuanDekan' => '-',
+                'catatanDekan' => '-',
+                'formatsurat_id' => $formatsurat_id,
+                'dataSurat' => $dataSurat,
+                'user' => $realUser
+              ]);
+            }else{
+              $persetujuanKaprodi = $request->persetujuan;
+              $catatanKaprodi = $request->catatan;
+              $jsonArray = json_decode(PesananSurat::find($idPesanansurat)->dataSurat);
+              return view('pejabat.preview_izin_pengunduran_diri', [
+                'idPesanansurat' => $idPesanansurat,
+                'nirm' => $nirm,
+                'nama' => $nama,
+                'npm' => $npm,
+                'alamat' => $alamat,
+                'noTelepon' => $noTelepon,
+                'namaOrtu' => $namaOrtu,
+                'semester' => $semester,
+                'persetujuanDosenWali' => $jsonArray->persetujuanDosenWali,
+                'catatanDosenWali' => $jsonArray->catatanDosenWali,
+                'persetujuanKaprodi' => $persetujuanKaprodi,
+                'catatanKaprodi' => $catatanKaprodi,
+                'persetujuanWDII' => '-',
+                'catatanWDII' => '-',
+                'persetujuanWDI' => '-',
+                'catatanWDI' => '-',
+                'persetujuanDekan' => '-',
+                'catatanDekan' => '-',
+                'formatsurat_id' => $formatsurat_id,
+                'dataSurat' => $dataSurat,
+                'user' => $realUser
+              ]);
+            }
+          }
+          else if($realUser->id == "9"){
+            $surat = PesananSurat::find($idPesanansurat);
+            if($surat->count == 0){
+              $persetujuanDosenWali = $request->persetujuan;
+              $catatanDosenWali = $request->catatan;
+              return view('pejabat.preview_izin_pengunduran_diri', [
+                'idPesanansurat' => $idPesanansurat,
+                'nirm' => $nirm,
+                'nama' => $nama,
+                'npm' => $npm,
+                'alamat' => $alamat,
+                'noTelepon' => $noTelepon,
+                'namaOrtu' => $namaOrtu,
+                'semester' => $semester,
+                'persetujuanDosenWali' => $persetujuanDosenWali,
+                'catatanDosenWali' => $catatanDosenWali,
+                'persetujuanKaprodi' => '-',
+                'catatanKaprodi' => '-',
+                'persetujuanWDII' => '-',
+                'catatanWDII' => '-',
+                'persetujuanWDI' => '-',
+                'catatanWDI' => '-',
+                'persetujuanDekan' => '-',
+                'catatanDekan' => '-',
+                'formatsurat_id' => $formatsurat_id,
+                'dataSurat' => $dataSurat,
+                'user' => $realUser
+              ]);
+            }else{
+              $persetujuanKaprodi = $request->persetujuan;
+              $catatanKaprodi = $request->catatan;
+              $jsonArray = json_decode(PesananSurat::find($idPesanansurat)->dataSurat);
+              return view('pejabat.preview_izin_pengunduran_diri', [
+                'idPesanansurat' => $idPesanansurat,
+                'nirm' => $nirm,
+                'nama' => $nama,
+                'npm' => $npm,
+                'alamat' => $alamat,
+                'noTelepon' => $noTelepon,
+                'namaOrtu' => $namaOrtu,
+                'semester' => $semester,
+                'persetujuanDosenWali' => $jsonArray->persetujuanDosenWali,
+                'catatanDosenWali' => $jsonArray->catatanDosenWali,
+                'persetujuanKaprodi' => $persetujuanKaprodi,
+                'catatanKaprodi' => $catatanKaprodi,
+                'persetujuanWDII' => '-',
+                'catatanWDII' => '-',
+                'persetujuanWDI' => '-',
+                'catatanWDI' => '-',
+                'persetujuanDekan' => '-',
+                'catatanDekan' => '-',
+                'formatsurat_id' => $formatsurat_id,
+                'dataSurat' => $dataSurat,
+                'user' => $realUser
+              ]);
+            }
           }
           else{
-            $persetujuanDosenWali = $request->persetujuan;
-            $catatanDosenWali = $request->catatan;
-          }
-          $formatsurat_id = $request->jenis_surat;
-          $dataSurat = $this->buatJSON($request);
-          return view('mahasiswa.preview_izin_pengunduran_diri', [
-              'idPesanansurat' => $idPesanansurat,
-              'nama' => $nama,
-              'npm' => $npm,
-              'alamat' => $alamat,
-              'noTelepon' => $noTelepon,
-              'namaOrtu' => $namaOrtu,
-              'dosenWali' => $dosenWali,
-              'semester' => $semester,
-              'persetujuanDosenWali' => $persetujuanDosenWali,
-              'catatanDosenWali' => $catatanDosenWali,
-              'persetujuanKaprodi' => $persetujuanKaprodi,
-              'catatanKaprodi' => $catatanKaprodi,
-              'persetujuanWDII' => $persetujuanWDII,
-              'catatanWDII' => $catatanWDII,
-              'persetujuanWDI' => $persetujuanWDI,
-              'catatanWDI' => $catatanWDI,
-              'persetujuanDekan' => $persetujuanDekan,
-              'formatsurat_id' => $formatsurat_id,
-              'dataSurat' => $dataSurat,
-              'user' => $realUser
-          ]);
+              $persetujuanDosenWali = $request->persetujuan;
+              $catatanDosenWali = $request->catatan;
+              return view('pejabat.preview_izin_pengunduran_diri', [
+                'idPesanansurat' => $idPesanansurat,
+                'nirm' => $nirm,
+                'nama' => $nama,
+                'npm' => $npm,
+                'alamat' => $alamat,
+                'noTelepon' => $noTelepon,
+                'namaOrtu' => $namaOrtu,
+                'semester' => $semester,
+                'persetujuanDosenWali' => $persetujuanDosenWali,
+                'catatanDosenWali' => $catatanDosenWali,
+                'persetujuanKaprodi' => '-',
+                'catatanKaprodi' => '-',
+                'persetujuanWDII' => '-',
+                'catatanWDII' => '-',
+                'persetujuanWDI' => '-',
+                'catatanWDI' => '-',
+                'persetujuanDekan' => '-',
+                'catatanDekan' => '-',
+                'formatsurat_id' => $formatsurat_id,
+                'dataSurat' => $dataSurat,
+                'user' => $realUser
+            ]);
+          }   
       }
     }
 
@@ -2596,16 +3042,13 @@ class PesanansuratController extends Controller
 
           $pesanansurats;
           if($request->kategori == "jenis_surat"){
-            $pesanansurats = $this->pesanansuratRepo->findMahasiswaByJenisSurat($request->searchBox);
+            $pesanansurats = $this->pesanansuratRepo->findPesanansuratByJenisSurat($request->searchBox);
           }
-          else if($request->kategori == "perihal"){
-            $pesanansurats = $this->pesanansuratRepo->findMahasiswaByPerihal($request->searchBox);
-          }
-          else if($request->kategori == "penerima_surat"){
+          else if($request->kategori == "penerimaSurat"){
             $pesanansurats = $this->pesanansuratRepo->findPesananSuratByPenerimaSurat($request->searchBox);
           }
-          else if($request->kategori == "pengirimSurat"){
-            $pesanansurats = $this->pesanansuratRepo->findMahasiswaByPengirimSurat($request->searchBox);
+          else if($request->kategori == "pemohonSurat"){
+            $pesanansurats = $this->pesanansuratRepo->findPesananSuratByPemohonSurat($request->searchBox);
           }
           else if($request->kategori == "tanggalPembuatan"){
             $pesanansurats = $this->pesanansuratRepo->findMahasiswaByTanggalPembuatan($request->searchBox);
@@ -2613,24 +3056,53 @@ class PesanansuratController extends Controller
           else{
             $pesanansurats = $this->pesanansuratRepo->findAllPesananSurat();
           }
-          // dd($pesanansurats[0]);
+          // dd($pesanansurats);
           return view('TU.home_TU',[
               'pesanansurats' => $pesanansurats,
               'user' => $realUser
           ]);
   	}
+
+    public function persetujuanPesananSurat(Request $request){
+          $loggedInUser = Auth::user();
+          // dd($loggedInUser);
+          $realUser = $this->getRealUser($loggedInUser);
+
+          $pesanansurats;
+          if($request->kategori == "jenis_surat"){
+            $pesanansurats = $this->pesanansuratRepo->findPesanansuratByJenisSurat($request->searchBox);
+          }
+          else if($request->kategori == "penerimaSurat"){
+            $pesanansurats = $this->pesanansuratRepo->findPesananSuratByPenerimaSurat($request->searchBox);
+          }
+          else if($request->kategori == "pemohonSurat"){
+            $pesanansurats = $this->pesanansuratRepo->findPesananSuratByPemohonSurat($request->searchBox);
+          }
+          else if($request->kategori == "tanggalPembuatan"){
+            $pesanansurats = $this->pesanansuratRepo->findMahasiswaByTanggalPembuatan($request->searchBox);
+          }
+          else{
+            $pesanansurats = $this->pesanansuratRepo->findPesananSurat();
+          }
+          // dd($pesanansurats);
+          return view('TU.persetujuan_surat',[
+              'pesanansurats' => $pesanansurats,
+              'user' => $realUser
+          ]);
+  	}
+
     public function sendDataSurat(Request $request){
       $loggedInUser = Auth::user();
       // dd($loggedInUser);
       $realUser = $this->getRealUser($loggedInUser);
-
+      
       if($request->idFormatSurat == "1"){
         $dataSurat = $request->prosesSurat;
         $json = json_decode($dataSurat);
         $nama = $json->nama;
         $prodi = $json->prodi;
         $npm = $json->npm;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         // dd($user);
         $semester = $json->semester;
         $thnAkademik = $json->thnAkademik;
@@ -2638,8 +3110,7 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        // dd($request->id);
-        // dd($pemesan);
+        $tanggal = $pesananID->created_at;
         return view('TU.proses_surat_keterangan_beasiswa', [
             'nama' => $nama,
             'prodi' => $prodi,
@@ -2649,7 +3120,9 @@ class PesanansuratController extends Controller
             'penyediabeasiswa' => $penyediabeasiswa,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -2666,7 +3139,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         // dd($dataSurat);
         return view('TU.proses_surat_keterangan_mahasiswa_aktif', [
             'nama' => $nama,
@@ -2678,7 +3152,9 @@ class PesanansuratController extends Controller
             'semester' => $semester,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -2691,12 +3167,12 @@ class PesanansuratController extends Controller
         $organisasiTujuan = $json->organisasiTujuan;
         $thnAkademik = $json->thnAkademik;
         $negaraTujuan = $json->negaraTujuan;
-        $tanggalKunjungan = $json->tanggalKunjungan;
+        $tanggalKunjungan = date_create($json->tanggalKunjungan)->format("j F Y");
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
-        // dd($dataSurat);
+        $tanggal = $pesananID->created_at;
+        // $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_pembuatan_visa', [
             'nama' => $nama,
             'tglLahir' => $tglLahir,
@@ -2707,7 +3183,9 @@ class PesanansuratController extends Controller
             'tanggalKunjungan' => $tanggalKunjungan,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            // 'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -2727,7 +3205,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         // dd($request);
         return view('TU.proses_surat_izin_studi_lapangan_1org', [
             'nama' => $nama,
@@ -2742,7 +3221,9 @@ class PesanansuratController extends Controller
             'kepada' => $kepada,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -2764,7 +3245,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_izin_studi_lapangan_2org', [
             'nama' => $nama,
             'npm' => $npm,
@@ -2780,7 +3262,9 @@ class PesanansuratController extends Controller
             'npmAnggota' => $npmAnggota,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -2804,7 +3288,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_izin_studi_lapangan_3org', [
             'nama' => $nama,
             'npm' => $npm,
@@ -2822,7 +3307,9 @@ class PesanansuratController extends Controller
             'npmAnggota2' => $npmAnggota2,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -2848,7 +3335,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_izin_studi_lapangan_4org', [
             'nama' => $nama,
             'npm' => $npm,
@@ -2868,7 +3356,9 @@ class PesanansuratController extends Controller
             'npmAnggota3' => $npmAnggota3,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -2896,7 +3386,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_izin_studi_lapangan_5org', [
             'nama' => $nama,
             'npm' => $npm,
@@ -2918,7 +3409,9 @@ class PesanansuratController extends Controller
             'npmAnggota4' => $npmAnggota4,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -2947,7 +3440,12 @@ class PesanansuratController extends Controller
         $catatanWDI = $json->catatanWDI;
         $persetujuanDekan = $json->persetujuanDekan;
         $formatsurat_id = $request->idFormatSurat;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
+        $pemesan = $pesananID->mahasiswa_id;
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
+        $link = $json->link;
+        // dd($link);
         return view('TU.proses_surat_izin_cuti_studi', [
             'nama' => $nama,
             'npm' => $npm,
@@ -2970,13 +3468,17 @@ class PesanansuratController extends Controller
             'persetujuanDekan' => $persetujuanDekan,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
-            'pemesan' => $pemesan
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
+            'pemesan' => $pemesan,
+            'link' => $link
         ]);
       }
       else if($request->idFormatSurat == "10"){
         $dataSurat = $request->prosesSurat;
         $json = json_decode($dataSurat);
+        $nirm = $json->nirm;
         $nama = $json->nama;
         $npm = $json->npm;
         $alamat = $json->alamat;
@@ -2986,27 +3488,21 @@ class PesanansuratController extends Controller
         $semester = $json->semester;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
-        //upload
-        // $lampiran = $request->file('lampiran_CutiStudi');
-        // $destination_path = ('lampiran/cuti_studi/');
-        // $filename = $lampiran->getClientOriginalName();
-        // $namaDepan = explode(" ", $nama);
-        // $savedLampiran = ($namaDepan[0] . '_' . $namaDepan[1] . '_' .$filename);
-        // $lampiran->move($destination_path, $savedLampiran);
-
-        // $link = '127.0.0.1:8000/format_surat_latex/' . $filename;
-        $persetujuanDosenWali = '-';
-        $catatanDosenWali = '-';
-        $persetujuanKaprodi = '-';
-        $catatanKaprodi = '-';
-        $persetujuanWDII = '-';
-        $catatanWDII = '-';
-        $persetujuanWDI = '-';
-        $catatanWDI = '-';
-        $persetujuanDekan = '-';
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
+        $persetujuanDosenWali = $json->persetujuanDosenWali;
+        $catatanDosenWali = $json->catatanDosenWali;
+        $persetujuanKaprodi = $json->persetujuanKaprodi;
+        $catatanKaprodi = $json->catatanKaprodi;
+        $persetujuanWDII = $json->persetujuanWDII;
+        $catatanWDII = $json->catatanWDII;
+        $persetujuanWDI = $json->persetujuanWDI;
+        $catatanWDI = $json->catatanWDI;
+        $persetujuanDekan = $json->persetujuanDekan;
         $formatsurat_id = $request->idFormatSurat;
+        $link = $json->link;
         return view('TU.proses_surat_izin_pengunduran_diri', [
+            'nirm' => $nirm,
             'nama' => $nama,
             'npm' => $npm,
             'alamat' => $alamat,
@@ -3025,8 +3521,11 @@ class PesanansuratController extends Controller
             'persetujuanDekan' => $persetujuanDekan,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
-            'pemesan' => $pemesan
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
+            'pemesan' => $pemesan,
+            'link' => $link
         ]);
       }
       else if($request->idFormatSurat == "11"){
@@ -3048,7 +3547,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_perwakilan_perwalian_1mk', [
             'semester' => $semester,
             'thnAkademik' => $thnAkademik,
@@ -3065,7 +3565,9 @@ class PesanansuratController extends Controller
             'sks' => $sks,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -3091,7 +3593,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_perwakilan_perwalian_2mk', [
             'semester' => $semester,
             'thnAkademik' => $thnAkademik,
@@ -3111,7 +3614,9 @@ class PesanansuratController extends Controller
             'sks2' => $sks2,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -3140,7 +3645,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_perwakilan_perwalian_3mk', [
             'semester' => $semester,
             'thnAkademik' => $thnAkademik,
@@ -3163,7 +3669,9 @@ class PesanansuratController extends Controller
             'sks3' => $sks3,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -3195,7 +3703,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_perwakilan_perwalian_4mk', [
             'semester' => $semester,
             'thnAkademik' => $thnAkademik,
@@ -3221,7 +3730,9 @@ class PesanansuratController extends Controller
             'sks4' => $sks4,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -3256,7 +3767,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_perwakilan_perwalian_5mk', [
             'semester' => $semester,
             'thnAkademik' => $thnAkademik,
@@ -3285,7 +3797,9 @@ class PesanansuratController extends Controller
             'sks5' => $sks5,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -3323,7 +3837,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_perwakilan_perwalian_6mk', [
             'semester' => $semester,
             'thnAkademik' => $thnAkademik,
@@ -3355,7 +3870,9 @@ class PesanansuratController extends Controller
             'sks6' => $sks6,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -3396,7 +3913,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_perwakilan_perwalian_7mk', [
             'semester' => $semester,
             'thnAkademik' => $thnAkademik,
@@ -3431,7 +3949,9 @@ class PesanansuratController extends Controller
             'sks7' => $sks7,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -3475,7 +3995,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_perwakilan_perwalian_8mk', [
             'semester' => $semester,
             'thnAkademik' => $thnAkademik,
@@ -3513,7 +4034,9 @@ class PesanansuratController extends Controller
             'sks8' => $sks8,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -3560,7 +4083,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_perwakilan_perwalian_9mk', [
             'semester' => $semester,
             'thnAkademik' => $thnAkademik,
@@ -3601,7 +4125,9 @@ class PesanansuratController extends Controller
             'sks9' => $sks9,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
@@ -3651,7 +4177,8 @@ class PesanansuratController extends Controller
         $formatsurat_id = $request->idFormatSurat;
         $pesananID = $this->pesanansuratRepo->findPesananSuratById($request->id);
         $pemesan = $pesananID->mahasiswa_id;
-        $user = Mahasiswa::where('npm',$json->npm)->first();
+        $tanggal = $pesananID->created_at;
+        $mhs = Mahasiswa::where('npm',$json->npm)->first();
         return view('TU.proses_surat_perwakilan_perwalian_10mk', [
             'semester' => $semester,
             'thnAkademik' => $thnAkademik,
@@ -3695,11 +4222,14 @@ class PesanansuratController extends Controller
             'sks10' => $sks10,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
-            'user' => $user,
+            'mhs' => $mhs,
+            'user' => $realUser,
+            'tanggal' => $tanggal,
             'pemesan' => $pemesan
         ]);
       }
     }
+
     public function store(Request $request){
       $loggedInUser = Auth::user();
       // dd($request->idFormat);
@@ -3707,7 +4237,6 @@ class PesanansuratController extends Controller
       $realUser = $this->getRealUser($loggedInUser);
         if($request->idFormat == "1"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
           $pesanansurat->penerimaSurat = $request->provider;
@@ -3721,10 +4250,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "2"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = '-';;
+          $pesanansurat->penerimaSurat = '-';
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3735,12 +4263,12 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "3"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
           $pesanansurat->penerimaSurat = $request->organisasiTujuan;
+          // dd($request->organisasiTujuan);
           $pesanansurat->dataSurat = $request->dataSurat;
-          $pesanansurat->persetujuanDosenWali = true ;
+          $pesanansurat->persetujuanDosenWali = true;
           $pesanansurat->persetujuanKaprodi = true;
           $pesanansurat->persetujuanWDII = true;
           $pesanansurat->persetujuanWDI = true;
@@ -3749,12 +4277,12 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "4"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->organisasiTujuan;
+          $pesanansurat->penerimaSurat = $request->organisasi;
+          // dd($request->organisasi);
           $pesanansurat->dataSurat = $request->dataSurat;
-          $pesanansurat->persetujuanDosenWali = true ;
+          $pesanansurat->persetujuanDosenWali = true;
           $pesanansurat->persetujuanKaprodi = true;
           $pesanansurat->persetujuanWDII = true;
           $pesanansurat->persetujuanWDI = true;
@@ -3763,10 +4291,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "5"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->organisasiTujuan;
+          $pesanansurat->penerimaSurat = $request->organisasi;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3777,10 +4304,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "6"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->organisasiTujuan;
+          $pesanansurat->penerimaSurat = $request->organisasi;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3791,10 +4317,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "7"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->organisasiTujuan;
+          $pesanansurat->penerimaSurat = $request->organisasi;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3805,10 +4330,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "8"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->organisasiTujuan;
+          $pesanansurat->penerimaSurat = $request->organisasi;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3819,7 +4343,6 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "9"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = 'Surat Ijin Berhenti Studi Sementara';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
           $pesanansurat->penerimaSurat = $realUser->nama_mahasiswa;
@@ -3834,7 +4357,6 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "10"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = 'Pengunduran Diri';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
           $pesanansurat->penerimaSurat = 'Rektor';
@@ -3849,10 +4371,10 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "11"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->dosen->nama_dosen;
+          $pesanansurat->penerimaSurat = Mahasiswa::where('id',$realUser->id)->first()->dosen->nama_dosen;
+          // DD($request);
           // $pesanansurat->dataSurat = $request->data;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
@@ -3864,10 +4386,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "12"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->dosen->nama_dosen;
+          $pesanansurat->penerimaSurat = Mahasiswa::where('id',$realUser->id)->first()->dosen->nama_dosen;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3878,10 +4399,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "13"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->dosen->nama_dosen;
+          $pesanansurat->penerimaSurat = Mahasiswa::where('id',$realUser->id)->first()->dosen->nama_dosen;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3892,10 +4412,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "14"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->dosen->nama_dosen;
+          $pesanansurat->penerimaSurat = Mahasiswa::where('id',$realUser->id)->first()->dosen->nama_dosen;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3906,10 +4425,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "15"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->dosen->nama_dosen;
+          $pesanansurat->penerimaSurat = Mahasiswa::where('id',$realUser->id)->first()->dosen->nama_dosen;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3920,10 +4438,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "16"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->dosen->nama_dosen;
+          $pesanansurat->penerimaSurat = Mahasiswa::where('id',$realUser->id)->first()->dosen->nama_dosen;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3934,10 +4451,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "17"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->dosen->nama_dosen;
+          $pesanansurat->penerimaSurat = Mahasiswa::where('id',$realUser->id)->first()->dosen->nama_dosen;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3948,10 +4464,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "18"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->dosen->nama_dosen;
+          $pesanansurat->penerimaSurat = Mahasiswa::where('id',$realUser->id)->first()->dosen->nama_dosen;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3962,10 +4477,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "19"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->dosen->nama_dosen;
+          $pesanansurat->penerimaSurat = Mahasiswa::where('id',$realUser->id)->first()->dosen->nama_dosen;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3976,10 +4490,9 @@ class PesanansuratController extends Controller
         }
         else if($request->idFormat == "20"){
           $pesanansurat = new PesananSurat;
-          $pesanansurat->perihal = '-';
           $pesanansurat->mahasiswa_id = $realUser->id;
           $pesanansurat->formatsurat_id = $request->idFormat;
-          $pesanansurat->penerimaSurat = $request->dosen->nama_dosen;
+          $pesanansurat->penerimaSurat = Mahasiswa::where('id',$realUser->id)->first()->dosen->nama_dosen;
           $pesanansurat->dataSurat = $request->dataSurat;
           $pesanansurat->persetujuanDosenWali = true ;
           $pesanansurat->persetujuanKaprodi = true;
@@ -3988,7 +4501,7 @@ class PesanansuratController extends Controller
           $pesanansurat->persetujuanDekan = true;
           $pesanansurat->save();
         }
-        return redirect('/home_mahasiswa')->with('success_message', 'Surat berhasil dibuat');
+        return redirect('/home_mahasiswa');
     }
 
     /**
@@ -4025,7 +4538,9 @@ class PesanansuratController extends Controller
             'organisasiTujuan' => $request->organisasiTujuan,
             'thnAkademik' => $request->thnAkademik,
             'negaraTujuan' => $request->negaraTujuan,
-            'tanggalKunjungan' => $request->tanggalKunjungan
+            'tanggalKunjungan' => $request->tanggalKunjungan,
+            'npm'=> $request->npm,
+            'angkatan' => $request->angkatan
           ];
       }
       else if($request->jenis_surat == "4"){
@@ -4119,9 +4634,18 @@ class PesanansuratController extends Controller
         ];
       }
       else if($request->jenis_surat == "9"){
+        //upload
+        $npm = $request->npm;
+        $lampiran = $request->file('lampiran_CutiStudi');
+        $destination_path = ('lampiran/cuti_studi/');
+        $filename = $lampiran->getClientOriginalName();
+        $savedLampiran = ($npm . '_' .$filename);
+        $lampiran->move($destination_path, $savedLampiran);
+
+        $link = '127.0.0.1:8000/lampiran/cuti_studi/' . $savedLampiran;
         $obj = [
           'nama' => $request->nama,
-          'npm' => $request->npm,
+          'npm' => $npm,
           'prodi' => $request->prodi,
           'fakultas' => $request->fakultas,
           'alamat' => $request->alamat,
@@ -4138,13 +4662,25 @@ class PesanansuratController extends Controller
           'catatanWDII' => $request->catatanWDII,
           'persetujuanWDI' => $request->persetujuanWDI,
           'catatanWDI' => $request->catatanWDI,
-          'persetujuanDekan' => $request->persetujuanDekan
+          'persetujuanDekan' => $request->persetujuanDekan,
+          'link' => $link
         ];
       }
       else if($request->jenis_surat == "10"){
+        //upload
+        $npm = $request->npm;
+        $lampiran = $request->file('lampiran_PengunduranDiri');
+        $destination_path = ('lampiran/pengunduran_diri/');
+        // dd($lampiran);
+        $filename = $lampiran->getClientOriginalName();
+        $savedLampiran = ($npm . '_' .$filename);
+        $lampiran->move($destination_path, $savedLampiran);
+        // dd($request);
+        $link = '127.0.0.1:8000/lampiran/' . $savedLampiran;
         $obj = [
+          'nirm' => $request->nirm,
           'nama' => $request->nama,
-          'npm' => $request->npm,
+          'npm' => $npm,
           'alamat' => $request->alamat,
           'noTelepon' => $request->noTelepon,
           'namaOrtu' => $request->namaOrtu,
@@ -4158,7 +4694,10 @@ class PesanansuratController extends Controller
           'catatanWDII' => $request->catatanWDII,
           'persetujuanWDI' => $request->persetujuanWDI,
           'catatanWDI' => $request->catatanWDI,
-          'persetujuanDekan' => $request->persetujuanDekan
+          'persetujuanDekan' => $request->persetujuanDekan,
+          'catatanDekan' => $request->catatanDekan,
+          'prodi' => $request->prodi,
+          'link' => $link
         ];
       }
       else if($request->jenis_surat == "11"){
@@ -4555,8 +5094,10 @@ class PesanansuratController extends Controller
         $organisasiTujuan = $request->organisasiTujuan;
         $thnAkademik = $request->thnAkademik;
         $negaraTujuan = $request->negaraTujuan;
-        $tanggalKunjungan = $request->tanggalKunjungan;
+        $tanggalKunjungan = date_create($request->tanggalKunjungan)->format("j F Y");
         $formatsurat_id = $request->jenis_surat;
+        $npm = $request->npm;
+        // dd($request->angkatan);
         $dataSurat = $this->buatJSON($request);
         // dd($dataSurat);
         return view('mahasiswa.preview_pembuatan_visa', [
@@ -4769,15 +5310,7 @@ class PesanansuratController extends Controller
         $dosenWali = $request->dosenWali;
         $semester = $request->semester;
         $thnAkademik = $request->thnAkademik;
-        //upload
-        $lampiran = $request->file('lampiran_CutiStudi');
-        $destination_path = ('lampiran/cuti_studi/');
-        $filename = $lampiran->getClientOriginalName();
-        $namaDepan = explode(" ", $nama);
-        $savedLampiran = ($namaDepan[0] . '_' . $namaDepan[1] . '_' .$filename);
-        $lampiran->move($destination_path, $savedLampiran);
-
-        $link = '127.0.0.1:8000/lampiran/cuti_studi/' . $filename;
+        
         $persetujuanDosenWali = '-';
         $catatanDosenWali = '-';
         $persetujuanKaprodi = '-';
@@ -4789,6 +5322,7 @@ class PesanansuratController extends Controller
         $persetujuanDekan = '-';
         $formatsurat_id = $request->jenis_surat;
         $dataSurat = $this->buatJSON($request);
+        // dd($dataSurat);
         return view('mahasiswa.preview_izin_cuti_studi', [
             'nama' => $nama,
             'npm' => $npm,
@@ -4815,6 +5349,7 @@ class PesanansuratController extends Controller
         ]);
       }
       else if($request->jenis_surat == "10"){
+        $nirm = $request->nirm;
         $nama = $request->nama;
         $npm = $request->npm;
         $alamat = $request->alamat;
@@ -4822,15 +5357,7 @@ class PesanansuratController extends Controller
         $namaOrtu = $request->namaOrtu;
         $dosenWali = $request->dosenWali;
         $semester = $request->semester;
-        //upload
-        // $lampiran = $request->file('lampiran_CutiStudi');
-        // $destination_path = ('lampiran/cuti_studi/');
-        // $filename = $lampiran->getClientOriginalName();
-        // $namaDepan = explode(" ", $nama);
-        // $savedLampiran = ($namaDepan[0] . '_' . $namaDepan[1] . '_' .$filename);
-        // $lampiran->move($destination_path, $savedLampiran);
-
-        // $link = '127.0.0.1:8000/format_surat_latex/' . $filename;
+        
         $persetujuanDosenWali = '-';
         $catatanDosenWali = '-';
         $persetujuanKaprodi = '-';
@@ -4840,9 +5367,13 @@ class PesanansuratController extends Controller
         $persetujuanWDI = '-';
         $catatanWDI = '-';
         $persetujuanDekan = '-';
+        $catatanDekan = '-';
         $formatsurat_id = $request->jenis_surat;
         $dataSurat = $this->buatJSON($request);
+        $prodi = $request->prodi;
+        // dd($dataSurat);
         return view('mahasiswa.preview_izin_pengunduran_diri', [
+            'nirm' => $nirm,
             'nama' => $nama,
             'npm' => $npm,
             'alamat' => $alamat,
@@ -4859,6 +5390,8 @@ class PesanansuratController extends Controller
             'persetujuanWDI' => $persetujuanWDI,
             'catatanWDI' => $catatanWDI,
             'persetujuanDekan' => $persetujuanDekan,
+            'catatanDekan' => $catatanDekan,
+            'prodi' => $prodi,
             'formatsurat_id' => $formatsurat_id,
             'dataSurat' => $dataSurat,
             'user' => $realUser
@@ -5487,7 +6020,6 @@ class PesanansuratController extends Controller
       }
     }
 }
-
 \end{lstlisting}
 
 \begin{lstlisting}[language=tex,basicstyle=\tiny,caption=AuthenticateController.php]
@@ -5532,7 +6064,7 @@ class AuthenticateController extends Controller
 
 \end{lstlisting}
 
-\begin{lstlisting}[language=tex,basicstyle=\tiny,caption=AuthController.php]
+\begin{lstlisting}[language=tex,basicstyle=\tiny,caption=RegisterController.php]
 <?php
 
 namespace App\Http\Controllers\Auth;
@@ -5624,7 +6156,7 @@ class RegisterController extends Controller
 }
 \end{lstlisting}
 
-\begin{lstlisting}[language=tex,basicstyle=\tiny,caption=FormatsuratController.php]
+\begin{lstlisting}[language=tex,basicstyle=\tiny,caption=AuthController.php]
 <?php
 
 namespace App\Http\Controllers;
