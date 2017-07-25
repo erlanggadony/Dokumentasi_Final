@@ -214,9 +214,8 @@
 % - gunakan \texorpdfstring{\\}{} untuk pindah ke baris baru
 % - judul TIDAK ditulis dengan menggunakan huruf besar seluruhnya !!
 %=============================================================================
-\judulINA{Pembangunan Perangkat Lunak Sistem Informasi Kebutuhan Surat Akademik Mahasiswa di Fakultas Teknologi Informasi dan Sains UNiversitas Katolik Parahyangan}
-\judulENG{Developing Information System Software for Student Academic Letters on Faculty of Information Technology and
-Sciences Parahyangan Catholic University}
+\judulINA{Pembangunan Perangkat Lunak Sistem Informasi Kebutuhan Surat Akademik Mahasiswa di Fakultas Teknologi Informasi dan Sains Universitas Katolik Parahyangan}
+\judulENG{The Development of Student Academic Letters Information System Software at Faculty of Information Technology and Sciences Parahyangan Catholic University}
 %_____________________________________________________________________________
 %=============================================================================
 % 								BAGIAN X
@@ -228,13 +227,16 @@ Sciences Parahyangan Catholic University}
 % - hilangkan tanda << & >>, dan isi sesuai dengan data anda
 % - langsung mulai setelah '{' awal, jangan mulai menulis di baris bawahnya
 %=============================================================================
-\abstrakINA{Surat akademik merupakan surat resmi untuk kebutuhan akademik yang dikeluarkan oleh suatu institusi pendidikan. Saat ini pembuatan surat akademik di lingkungan Universitas Katolik Parahyangan (UNPAR) khususnya Fakultas Teknologi Informasi dan Sains (FTIS) masih dilakukan secara manual sehingga tidak efektif dan efisien. Oleh karena itu dibutuhkan suatu sistem otomasi yang dapat memproduksi surat secara masal.\\
+\abstrakINA{Surat akademik untuk mahasiswa merupakan surat resmi untuk kebutuhan akademik mahasiswa baik itu kelompok maupun perorangan yang dikeluarkan oleh suatu institusi pendidikan. Saat ini pembuatan surat akademik di lingkungan Universitas Katolik Parahyangan (UNPAR) dan Fakultas Teknologi Informasi dan Sains (FTIS) masih dilakukan secara manual sehingga tidak efektif dan efisien. Oleh karena itu dibutuhkan suatu sistem otomasi yang dapat memproduksi surat secara masal.\\
 \textit{Mailmerge} merupakan suatu konsep yang banyak diterapkan oleh sejumlah aplikasi pengolah kata untuk memproduksi dokumen secara masal. \textit{Mailmerge} membutuhkan sebuah dokumen utama yang akan digunakan sebagai teks tetap dan memuat variabel-variabel yang nantinya akan diisi dengan nilai yang didapat dari \textit{file} data.\\
-\textit{Website} penyedia surat akademik yang dibangun mengadaptasi konsep \textit{mailmerge} pada bahasa \textit{markup} \LaTeX untuk memproduksi setiap pesanan surat akademik yang masuk. Sebagai dokumen utama digunakan \textit{file} berekstensi .tex yang berfungsi sebagai format surat yang berisi teks tetap dan memuat variabel-variabel nilai yang berupa data kebutuhan surat. Nilai-nilai yang digunakan untuk mengisi variabel-variabel pada \textit{file} format surat diambil dari \textit{database} yang sebelumnya diisi oleh pemohon surat.\\
-Berdasarkan hasil pengujian yang dilakukan, dapat disimpulkan bahwa \textit{website} penyedia surat akademik ini telah berhasil diimplementasikan. Pengujian yang telah dilakukan yaitu pengujian pada fitur \textit{login}, pembuatan surat oleh mahasiswa, penambahan nomor surat dan \textit{generate} surat, mengubah status penandatanganan surat, mengubah status pengambilan surat, menghapus sebuah \textit{record} pada \textit{database} mahasiswa, menghapus format surat, menambah format surat dan megubah semester dan tahun akademik pada setiap data mahasiswa yang terdaftar.}
-\abstrakENG{Academic letter is an official letter issued by an academic institutional for academic purposes. Nowadays, the issuing of the academic letter in both UNPAR and FTIS is still done manually which is inefficient. An automatic system that could produce a letter in a large-scale manner is required regarding this problem.\\
-Mailmerge is a concept that is implemented by many word-processing software to produce documents massively. Mailmerge requires a main document which is used as the fixed text template containing variables, where the variables are then filled with value from the data file.\\
-Website which provides academic letters is developed by adapting mailmerge's concept to produce the required academic letters based on the request. The main document uses .tex file extension  which serves as a letter's format containing the variables' values which are the requirements of a letter. These values, that are to fill the variables on the letter's format file, are taken from the database which has already been inputted by the applicant before.} 
+\textit{Website} SIKSA yang dibangun mengadaptasi konsep \textit{mailmerge} pada bahasa \textit{markup} \LaTeX untuk memproduksi setiap pesanan surat akademik yang masuk. Sebagai dokumen utama digunakan \textit{file} berekstensi \textit{.tex} yang berfungsi sebagai format surat yang berisi teks tetap dan memuat variabel-variabel nilai yang berupa data kebutuhan surat. Nilai-nilai yang digunakan untuk mengisi variabel-variabel pada \textit{file} format surat diambil dari \textit{database} yang sebelumnya diisi oleh pemohon surat.\\
+Berdasarkan hasil pengujian yang dilakukan, dapat disimpulkan bahwa \textit{website} SIKSA telah berhasil diimplementasikan. Pengujian yang telah dilakukan yaitu pengujian pada fitur \textit{login}, pembuatan surat oleh mahasiswa, penambahan nomor surat dan \textit{generate} surat, mengubah status penandatanganan surat, mengubah status pengambilan surat, menghapus sebuah \textit{record} pada \textit{database} mahasiswa, menghapus format surat, menambah format surat dan megubah semester dan tahun akademik pada setiap data mahasiswa yang terdaftar.}
+\abstrakENG{Student academic letter is an official letter issued by academic institution for student academic purpose, for either group or individual purposes. Nowadays, both Universitas Katolik Parahyangan (UNPAR) and Fakultas Teknologi Informasi dan Sains (FTIS) issue academic letters manually which cause inneficiencies and ineffectivities. Thus, automatic system that could produce a letter in a large-scale manner is required to solve this problem.\\
+Mailmerge is a concept that is implemented by many word-processing software to produce documents massively. Mailmerge requires a main document used as the fixed text template containing variables, which are then filled with value from the data file.\\
+The SIKSA website that has been developed, adopted mailmerge's concept of \LaTeX markup language to produce the required academic letters based on the request. The main document uses .tex file extension  which serves as a letter's format containing the variables' values which are the requirements of a letter. These values, that are to fill the variables on the letter's format file, are taken from the database which has already been inputted by the applicant before.\\
+Based on the results of tests conducted, it can be concluded that the SIKSA website has been successfully implemented. The software has been tested on login feature, making letter by student, adding letter number and generating letter, changing letter signing status, changing letter retrieval status, deleting a record in student database, deleting letter format, adding letter format and changing semester and academic year on any registered student data.
+
+} 
 %=============================================================================
 
 %_____________________________________________________________________________
@@ -257,7 +259,7 @@ Website which provides academic letters is developed by adapting mailmerge's con
 % Persembahan : kepada siapa anda mempersembahkan skripsi ini ...
 % Petunjuk: hilangkan tanda << & >>, dan isi sesuai dengan data anda.
 %=============================================================================
-\untuk{<<kepada siapa anda mempersembahkan skripsi ini\ldots?>>}
+\untuk{Untuk Ayah, Bunda, Omeng, Bubuh, Aldi, Neng Rara, Sari dan semua orang yang sudah membantu dan menjadi pemberi semangat selama pembuatan skripsi ini}
 %=============================================================================
 
 %_____________________________________________________________________________
@@ -268,7 +270,22 @@ Website which provides academic letters is developed by adapting mailmerge's con
 % kasih kepada yang telah membantu anda bla bla bla ....  
 % Petunjuk: hilangkan tanda << & >>, dan isi sesuai dengan data anda.
 %=============================================================================
-\prakata{<<Tuliskan kata pengantar dari anda di sini \ldots>>} 
+\prakata{Puji syukur Alhamdulillah penulis panjatkan kehadirat Allah SWT yang telah memberikan Rahmat dan Hidayah-Nya sehingga penulis dapat menyelesaikan skripsi yang berjudul "Pembangunan Perangkat Lunak Sistem Informasi Kebutuhan Surat Akademik Mahasiswa di Fakultas Teknologi Informasi dan Sains Universitas Katolik Parahyangan". Shalawat serta salam semoga selalu tercurahkan kepada Baginda Besar Nabi Muhammad SAW.\\
+Skripsi ini membahas mengenai pembuatan surat akademik untuk kebutuhan mahasiswa yang dikeluarkan oleh Fakultas Teknologi Informasi dan Sains (FTIS) Universitas Katolik Parahyangan (UNPAR) yang pada prakteknya masih dilakukan secara manual sehingga menurunkan nilai efisiensi dan efektivitas surat sebagai alat komunikasi. Berdasarkan masalah yang dihadapi, penulis dibantu oleh dosen pembimbing membangun sebuah perangkat lunak yang dapat mengotomatisasi pembuatan surat akademik untuk kebutuhan mahasiswa.\\
+Bagaikan akar yang menopang pohon yang berada di atasnya untuk tetap berdiri kokoh, selama pengerjaan skripsi ini penulis mendapatkan berbagai bantuan dan dukungan, baik secara langsung maupun tidak langsung dari berbagai pihak yang membuat penulis tetap 'berdiri kokoh' hingga pengerjaan skripsi ini selesai. Untuk itu, pada kesempatan ini penulis hendak mengucapkan terima kasih yang sebesar-besarnya kepada.
+\begin{itemize}
+	\item Ayah dan Bunda yang tidak hentinya mendoakan dan mendukung pengerjaan dan penulisan skripsi ini. \textit{Punten nya} selama pengerjaan skripsi ini sering pulang lewat tengah malem, ngeganggu tidur, bangun selalu siang, tiap \textit{weekend} ngga bisa meluangkan waktu buat ngumpul bareng keluarga, ngga masakin nasi apalagi beres-beres rumah.
+	\item Dott. Thomas Anung Basuki yang dengan sabar membimbing, memotivasi dan membantu selama proses pengerjaan skripsi ini.
+	\item Mohamad Fahrizal Septrianto yang dengan sabar mengajarkan, membantu, memotivasi, mengorbankan kamarnya untuk jadi ruang kerja skripsi dan menjadi teman yang baik selama pengerjaan skripsi ini. Terima kasih juga untuk Mama dan Papa Ijal yang bersedia menampung penulis selama pengerjaan skripsi ini.
+	\item Omeng, Bubuh, Aldi, Neng Rara, Mah Neneng, Pah Iyang, Enong dan Sari yang selalu memberi penulis semangat sehingga pengerjaan skripsi tidak terasa membosankan dan (tidak terlalu) menegangkan.
+	\item Rosa De Lima Endang Padmowati,M.Kom. dan Dr.rer.nat. Cecilia Esti Nugraheni selaku ketua tim penguji dan anggota tim penguji yang telah menguji, memberikan masukan yang berharga dalam penyusunan skripsi ini.
+	\item Rachael Awuy, Mohamad Fahrizal, Devina Emily, Ghafara Difa Harashta, Distra Vantari, Andreas Novian dan Adli Fariz yang selalu meramaikan lab skripsi dan menemani pengerjaan skripsi sampai diusir satpam. Untuk Rachael, Ijal dan Devina, WISUDA MENANTI KITA TJUUUUUYY!!! Untuk Rasta dan Distra, ayo kejar sidang di UTS. Untuk Andreas, ayo kejar sidang di UAS, jangan sampai \textit{extend}. Untuk Abat, sikat Bat! Jangan kasih lemes!
+	\item Teman-teman Kansup B2, grup Tampan Itu Dony, rekan-rekan Informatika UNPAR 2010, 2011, 2012 dan 2013 yang selalu menjadi sumber semangat di kampus. Semoga yang belom skripsi bisa cepetan skripsi, yang lagi skripsi semoga proses pengerjaan skripsinya dilancarkan. Aamiiin!!
+	\item Rekan-rekan selama semester genap tahun ajaran 2016-2017 di kelas SO (Om Delta, Billy, Momon, Caca, Tobi, Mirza, Toim, Fadlan, Fachran), SPK (Arya, Wahyu Wewe), Kamin (Gavril, Vica, Caca (lagi), Randy Botak) dan Modsim (Ilham, Bima, Ovie, Adhika, Mario, Ella). Terima kasih sudah membantu untuk memahami materi dan pengerjaan tugas besar dari tiap matkul disaat \textit{deadline} pengumpulan skripsi makin dekat.
+	\item Semua pihak yang tidak mungkin disebutkan satu-persatu yang sudah memberikan bantuan dan dukungan dalam pengerjaan dan penyusunan skripsi ini.
+\end{itemize}
+Dalam penulisan skripsi ini, penulis menyadari bahwa masih terdapat banyak kekurangan pada banyak hal dikarenakan keterbatasan kemampuan menulis maupun kurangnya pengetahuan penulis. Oleh karena itu penulis memohon maaf yang sebesar-besarnya.\\
+Akhir kata, semoga skripsi ini dapat bermanfaat khususnya bagi penulis dan umumnya bagi pembaca maupun mahasiswa FTIS UNPAR dalam membuat surat akademik.} 
 %=============================================================================
 
 %_____________________________________________________________________________
